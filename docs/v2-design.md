@@ -90,8 +90,44 @@ V2 要求**多轮**有目的的迭代，而非一次性改色改字。
 3. 常见问题①"如何平衡专业课学习、科研项目和学生工作"的一段回答（About 卡片扩展内容，可选）
 4. 申研规划可公开的程度（About 第三张卡片扩展内容，可选）
 
-## 6. 版本记录
+## 6. V2 实现记录（2026-09-03 完成）
+
+> V2 按四轮有目的的迭代完成（R1→R4），每轮独立 commit + git checkpoint，遵循 PRD 第 9 节证据要求。
+
+### 6.1 素材落实情况
+- Digital Resin 任务介绍素材：**已由本人提供**，完整存档在 `docs/digital-resin.md`（离子交换树脂数字孪生模型 MVP 阶段）。已用于 R2 项目详情模态的完整双语内容。
+- 志愿者论坛小程序：本人明确**尚未建成**，故卡片状态设为"筹备中（Planning）"，详情暂展示 coming-soon 占位，待素材补充后填入 `PROJECTS.forum`。
+- About 卡片扩展内容（素材 3/4）：按本人已提供的个人信息陈述拟稿实现（可随时替换）。
+
+### 6.2 四轮迭代与 git checkpoint
+
+| 轮次 | Commit | 说明 | Evidence |
+|---|---|---|---|
+| R1 | `77c4c09` | 液态玻璃导航 pill + 玻璃质感系统 + 背景光晕 | styles.css：玻璃 CSS 变量（light/dark）、body::before 光晕、.nav-links pill（含 .active 样式）、.control-btn 玻璃化、.navbar.scrolled 阴影加深、section scroll-margin 84px、.feature-card/.project-card 毛玻璃化 |
+| R2 | `06c982c` | 项目详情模态视图 | index.html：项目卡1 由整卡 `<a>` 改 `<div data-project>`（内嵌独立 GitHub 链接）+ 模态容器；main.js：PROJECTS 双语数据、模态渲染/开关、i18n 新增 key；styles.css：.modal-overlay/.modal-panel/.modal-close/.m-sec/.stack 全套样式；论坛卡 badge 改"筹备中" |
+| R3 | `8bccf4d` | About 卡片点击展开 | index.html：三张 feature-card 加 data-expand + .feature-more + .feature-hint；main.js：initExpand 点击/键盘切换、applyLang 重设已展开卡片 hint；styles.css：max-height 展开动画、hint 显现、expanded 强调边框 |
+| R4 | `1930eb3` | 移动菜单 + scroll spy + 响应式 + footer V2.0 | index.html：menu-btn、mobile-menu 覆盖层、footer V2.0；main.js：initNavbar 增加移动菜单开关、IntersectionObserver scroll spy（含降级）；styles.css：汉堡按钮、全屏毛玻璃菜单、768px 断点调整、文件头注释 V2.0 |
+
+### 6.3 验证结论（静态 + jsc + HTTP）
+- `jsc assets/js/main.js`：**无 SyntaxError**（仅非浏览器环境的 `document` ReferenceError，属预期）。
+- `curl localhost:8000/{index.html,assets/css/styles.css,assets/js/main.js}`：**全部 200**。
+- i18n 配对校验：HTML 中全部 49 个 `data-i18n` key 均在 main.js 词典（zh/en）中定义，**无遗漏**。
+- `grep V1.0`（index.html + assets/）：已全部清理（含文件头注释，均已升级 V2.0）。
+- 浏览器（DeepWorks Browser）已打开 `http://localhost:8000/index.html` 供本人目视复核视觉与交互效果（模态/展开/移动菜单为 JS 交互逻辑，已通过代码审查确认）。
+
+### 6.4 需求 → 实现映射
+- 需求①（作品集详情视图）：R2 项目详情模态——点击项目卡弹出完整详情（背景/目标/已完成/技术栈/收尾/未来方向），社交媒体互动字段显示"—"占位，**留言/浏览量/喜爱量仍归 V3**（需 Supabase，PRD 第 10 节）。
+- 需求②（About 卡片点击展示更多）：R3 可展开卡片。
+- 需求③（顶栏导航液态玻璃）：R1 液态玻璃 pill + scroll spy 当前板块高亮（R4 完成 scroll spy）。
+- 需求④（适当区域毛玻璃）：R1 卡片毛玻璃 + R2 模态毛玻璃 + R1 body 背景光晕层，形成统一玻璃视觉语言。
+
+### 6.5 V3 预留接口（后续扩展）
+- 留言/浏览量/喜爱量：`renderProjectModal` 中 `.modal-stats` 的 `—` 占位即预留槽位，V3 接入 Supabase 后替换为实时数据。
+- 论坛项目详情：`PROJECTS.forum` 数据对象已预留结构，素材补充后直接填入。
+
+## 7. 版本记录
 
 | 版本 | 日期 | 内容 |
 |---|---|---|
 | V2-Design-01 | 2026-09-03 | 收录本人 4 条 V2 方向；需求①拆分为 V2（详情视图）+ V3（留言/浏览量/喜爱量）；确认③④为液态玻璃视觉语言 |
+| V2-Impl | 2026-09-03 | R1→R4 全部完成并合入 main；四轮独立 commit + git checkpoint；静态/jsc/HTTP/i18n 校验通过；tag `v2.0` |
