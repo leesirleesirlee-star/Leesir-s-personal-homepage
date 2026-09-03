@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Nick Lee 李泽民 — Personal Homepage">
+  <title>Nick Lee 李泽民 · Personal Homepage</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+  <!-- ============ Navigation ============ -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="#hero" class="nav-logo">Nick Lee</a>
+
+      <div class="nav-links">
+        <a href="#about" data-i18n="nav.about">关于</a>
+        <a href="#projects" data-i18n="nav.projects">项目</a>
+        <a href="#learning" data-i18n="nav.learning">学习与兴趣</a>
+        <a href="#contact" data-i18n="nav.contact">联系</a>
+      </div>
+
+      <div class="nav-controls">
+        <button class="control-btn" id="lang-toggle" type="button" aria-label="Switch language">EN</button>
+        <button class="control-btn control-btn--icon" id="theme-toggle" type="button" aria-label="Toggle theme">
+          <svg class="icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+          </svg>
+          <svg class="icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ============ Hero ============ -->
+    <section class="hero" id="hero">
+      <div class="hero-content reveal">
+        <p class="hero-eyebrow" data-i18n="hero.eyebrow">Nick Lee</p>
+        <h1 class="hero-name" data-i18n="hero.name">李泽民</h1>
+        <p class="hero-identity" data-i18n="hero.identity">天津大学香港理工大学深圳未来技术学院 · 计算机方向</p>
+        <p class="hero-tagline" data-i18n="hero.tagline">深耕数理基础，热衷梳理知识体系。为海外申研积累，未来希望从事金融行业。</p>
+        <div class="hero-cta">
+          <a href="#projects" class="btn btn-primary" data-i18n="hero.ctaPrimary">查看我的项目</a>
+          <a href="#contact" class="btn btn-secondary" data-i18n="hero.ctaSecondary">联系我</a>
+        </div>
+      </div>
+      <a href="#about" class="scroll-hint" aria-label="Scroll down">
+        <span class="scroll-hint-text" data-i18n="hero.scroll">向下滚动</span>
+        <span class="scroll-hint-arrow"></span>
+      </a>
+    </section>
+
+    <!-- ============ About ============ -->
+    <section class="section" id="about">
+      <div class="container">
+        <p class="section-eyebrow reveal" data-i18n="about.eyebrow">About</p>
+        <h2 class="section-title reveal" data-i18n="about.title">关于我</h2>
+        <p class="section-lead reveal" data-i18n="about.body">目前，我正专注于适应大学学习节奏，夯实计算机与数学专业基础；参与科研竞赛项目，打磨学生骨干经历；同步提升英文能力，为海外申研积累履历。</p>
+
+        <div class="feature-grid">
+          <div class="feature-card reveal">
+            <h3 data-i18n="about.f1.title">逻辑严谨</h3>
+            <p data-i18n="about.f1.desc">做事有条理，擅长拆解复杂概念。</p>
+          </div>
+          <div class="feature-card reveal">
+            <h3 data-i18n="about.f2.title">科研与实践并行</h3>
+            <p data-i18n="about.f2.desc">兼顾科研实践与学生工作，多维成长。</p>
+          </div>
+          <div class="feature-card reveal">
+            <h3 data-i18n="about.f3.title">目标明确</h3>
+            <p data-i18n="about.f3.desc">方向清晰，执行力强。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Projects ============ -->
+    <section class="section" id="projects">
+      <div class="container">
+        <p class="section-eyebrow reveal" data-i18n="projects.eyebrow">Projects</p>
+        <h2 class="section-title reveal" data-i18n="projects.title">项目</h2>
+
+        <div class="project-list">
+          <a class="project-card reveal" href="https://github.com/leesirleesirlee-star/Digital-Resin" target="_blank" rel="noopener noreferrer">
+            <div class="project-card-top">
+              <h3 data-i18n="projects.p1.name">Digital Resin 数字孪生树脂</h3>
+              <span class="badge" data-i18n="projects.status.inprogress">进行中</span>
+            </div>
+            <p data-i18n="projects.p1.desc">个人研究项目，探索数字孪生（Digital Twin）技术在树脂材料领域的建模与应用。</p>
+            <span class="project-link">GitHub <span class="arrow">→</span></span>
+          </a>
+
+          <div class="project-card reveal">
+            <div class="project-card-top">
+              <h3 data-i18n="projects.p2.name">大学志愿者论坛小程序</h3>
+              <span class="badge" data-i18n="projects.status.inprogress">进行中</span>
+            </div>
+            <p data-i18n="projects.p2.desc">面向大学志愿者社群的微信小程序，支持提出建议、发布公告等功能，服务志愿活动的组织与沟通。</p>
+            <span class="project-tag" data-i18n="projects.p2.tag">微信小程序</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Learning & Interests ============ -->
+    <section class="section" id="learning">
+      <div class="container">
+        <p class="section-eyebrow reveal" data-i18n="learning.eyebrow">Learning &amp; Interests</p>
+        <h2 class="section-title reveal" data-i18n="learning.title">学习与兴趣</h2>
+
+        <div class="interest-grid">
+          <div class="interest-card reveal">
+            <h3 data-i18n="learning.i1.title">数理基础</h3>
+            <p data-i18n="learning.i1.desc">数学分析、线性代数——喜欢溯源推导底层原理。</p>
+          </div>
+          <div class="interest-card reveal">
+            <h3 data-i18n="learning.i2.title">计算机技术</h3>
+            <p data-i18n="learning.i2.desc">开发环境配置、AI Agent、提示词工程、代码调试。</p>
+          </div>
+          <div class="interest-card reveal">
+            <h3 data-i18n="learning.i3.title">人文历史</h3>
+            <p data-i18n="learning.i3.desc">历史思辨、文学心理解析。</p>
+          </div>
+          <div class="interest-card reveal">
+            <h3 data-i18n="learning.i4.title">规划成长</h3>
+            <p data-i18n="learning.i4.desc">升学规划、履历打磨、效率工具研究。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Contact ============ -->
+    <section class="section" id="contact">
+      <div class="container container-narrow">
+        <p class="section-eyebrow reveal" data-i18n="contact.eyebrow">Contact</p>
+        <h2 class="section-title reveal" data-i18n="contact.title">联系我</h2>
+        <p class="section-lead reveal" data-i18n="contact.lead">欢迎交流学习、科研合作或任何想法。</p>
+
+        <div class="contact-links reveal">
+          <a class="contact-item" href="mailto:lizeyu20080120@126.com">
+            <span class="contact-label" data-i18n="contact.email">邮箱</span>
+            <span class="contact-value">lizeyu20080120@126.com</span>
+          </a>
+          <a class="contact-item" href="https://github.com/leesirleesirlee-star" target="_blank" rel="noopener noreferrer">
+            <span class="contact-label">GitHub</span>
+            <span class="contact-value">github.com/leesirleesirlee-star</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ Footer ============ -->
+  <footer class="footer">
+    <p data-i18n="footer.text">© 2026 Nick Lee · V1.0</p>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

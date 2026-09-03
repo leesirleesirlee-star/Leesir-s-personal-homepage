@@ -1,0 +1,5 @@
+# DeepWorks 临时文件（预览日志等）
+.deepworks/tmp/
+
+# macOS
+.DS_Store
