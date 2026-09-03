@@ -410,8 +410,46 @@ section {
   box-shadow: var(--card-shadow);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
+  cursor: pointer;
   transition: box-shadow 0.3s ease, transform 0.3s cubic-bezier(0.28, 0.11, 0.32, 1),
     background 0.3s ease, border-color 0.3s ease;
+}
+
+.feature-card .feature-more {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease, margin-top 0.3s ease;
+}
+
+.feature-card.expanded .feature-more {
+  max-height: 320px;
+  opacity: 1;
+  margin-top: 14px;
+}
+
+.feature-card.expanded {
+  border-color: var(--accent);
+}
+
+.feature-hint {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--accent);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.feature-card:hover .feature-hint,
+.feature-card.expanded .feature-hint {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feature-hint { opacity: 1; transform: none; }
 }
 
 .feature-card:hover {

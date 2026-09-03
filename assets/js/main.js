@@ -31,6 +31,11 @@
       "about.f2.desc": "兼顾科研实践与学生工作，多维成长。",
       "about.f3.title": "目标明确",
       "about.f3.desc": "方向清晰，执行力强。",
+      "about.hint": "点击了解更多 ▾",
+      "about.hintLess": "收起 ▴",
+      "about.f1.more": "习惯把零散知识点整理成结构化笔记，对细节敏感，会主动梳理知识之间的关联——把\"拆解复杂\"变成可复用的方法。",
+      "about.f2.more": "专业课学习、科研项目与学生工作三线并行：以课程打牢数理基础，以科研（如 Digital Resin）锻炼方法，以学生工作磨练协作与执行。",
+      "about.f3.more": "以海外申研为中期目标，持续积累履历与英文能力；长期希望进入金融行业——目标清晰，路径明确。",
 
       "projects.eyebrow": "Projects",
       "projects.title": "项目",
@@ -97,6 +102,11 @@
       "about.f2.desc": "Balancing research practice with student leadership.",
       "about.f3.title": "Clear Goals",
       "about.f3.desc": "A clear direction with strong execution.",
+      "about.hint": "Click for more ▾",
+      "about.hintLess": "Show less ▴",
+      "about.f1.more": "I turn scattered knowledge into structured notes, stay sensitive to details, and map how concepts connect — turning \"breaking down complexity\" into a reusable method.",
+      "about.f2.more": "Coursework, research, and student leadership in parallel — courses build my foundation, research (e.g., Digital Resin) sharpens method, and student work trains execution.",
+      "about.f3.more": "Mid-term: building credentials and English for graduate applications abroad; long-term: a career in finance — a clear goal with a defined path.",
 
       "projects.eyebrow": "Projects",
       "projects.title": "Projects",
@@ -277,6 +287,12 @@
     try { localStorage.setItem("nick-homepage-lang", lang); } catch (e) {}
     // 模态打开时切换语言，重渲染详情内容
     if (openProjectId) renderProjectModal(openProjectId);
+    // 已展开的 About 卡片，重设 hint 文案
+    var expandedCards = document.querySelectorAll(".feature-card.expanded");
+    for (var ec = 0; ec < expandedCards.length; ec++) {
+      var hint = expandedCards[ec].querySelector(".feature-hint");
+      if (hint) hint.textContent = dict["about.hintLess"];
+    }
   }
 
   langToggle.addEventListener("click", function () {
@@ -443,10 +459,33 @@
     });
   }
 
+  /* ---------- 5c. About 卡片展开（V2） ---------- */
+  function initExpand() {
+    var cards = document.querySelectorAll(".feature-card[data-expand]");
+    for (var i = 0; i < cards.length; i++) {
+      (function (card) {
+        var hint = card.querySelector(".feature-hint");
+        function toggle() {
+          var dict = i18n[htmlEl.getAttribute("lang") === "en" ? "en" : "zh"];
+          var expanded = card.classList.toggle("expanded");
+          if (hint) hint.textContent = expanded ? dict["about.hintLess"] : dict["about.hint"];
+        }
+        card.addEventListener("click", toggle);
+        card.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggle();
+          }
+        });
+      })(cards[i]);
+    }
+  }
+
   /* ---------- 6. 初始化 ---------- */
   applyTheme(detectTheme());
   applyLang(detectLang());
   initReveal();
   initNavbar();
   initModal();
+  initExpand();
 })();
