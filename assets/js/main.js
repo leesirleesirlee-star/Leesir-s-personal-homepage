@@ -15,7 +15,7 @@
       "nav.contact": "联系",
 
       "hero.eyebrow": "Nick Lee",
-      "hero.name": "李泽民",
+      "hero.name": "李泽毓",
       "hero.identity": "天津大学香港理工大学深圳未来技术学院 · 计算机方向",
       "hero.tagline": "深耕数理基础，热衷梳理知识体系。为海外申研积累，未来希望从事金融行业。",
       "hero.ctaPrimary": "查看我的项目",
@@ -66,7 +66,7 @@
       "nav.learning": "Learning",
       "nav.contact": "Contact",
 
-      "hero.eyebrow": "Li Zemin",
+      "hero.eyebrow": "Li Zeyu",
       "hero.name": "Nick Lee",
       "hero.identity": "Computer Science · Shenzhen Institute of Future Technology, Tianjin University & The Hong Kong Polytechnic University",
       "hero.tagline": "Building deep foundations in mathematics and computing, with a passion for structuring knowledge — preparing for graduate study abroad, toward a future in finance.",
@@ -135,7 +135,7 @@
     }
     htmlEl.setAttribute("lang", lang === "zh" ? "zh-CN" : "en");
     document.title = lang === "zh"
-      ? "Nick Lee 李泽民 · Personal Homepage"
+      ? "Nick Lee 李泽毓 · Personal Homepage"
       : "Nick Lee · Personal Homepage";
     langToggle.textContent = lang === "zh" ? "EN" : "中";
     try { localStorage.setItem("nick-homepage-lang", lang); } catch (e) {}
