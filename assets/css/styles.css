@@ -6,30 +6,45 @@
 /* ---------- Theme Variables ---------- */
 :root {
   --bg: #FAF9F6;
-  --bg-elevated: #FFFFFF;
+  --bg-elevated: rgba(255, 255, 255, 0.62);
   --text: #1A2332;
   --text-secondary: #5A6472;
   --accent: #2C4A8A;
   --accent-hover: #22396B;
   --accent-soft: rgba(44, 74, 138, 0.08);
-  --divider: #ECEAE3;
+  --divider: rgba(26, 35, 50, 0.09);
   --card-shadow: 0 4px 24px rgba(26, 35, 50, 0.06);
   --card-shadow-hover: 0 12px 40px rgba(26, 35, 50, 0.12);
   --nav-bg: rgba(250, 249, 246, 0.72);
+  /* 液态玻璃（Liquid Glass）质感 */
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-shadow: 0 8px 32px rgba(26, 35, 50, 0.08);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(26, 35, 50, 0.04);
+  --glass-shadow-strong: 0 14px 44px rgba(26, 35, 50, 0.18);
+  --glow-1: rgba(44, 74, 138, 0.055);
+  --glow-2: rgba(150, 130, 90, 0.045);
 }
 
 [data-theme="dark"] {
   --bg: #0F141B;
-  --bg-elevated: #1B2330;
+  --bg-elevated: rgba(27, 35, 48, 0.55);
   --text: #EDEAE2;
   --text-secondary: #9AA3AE;
   --accent: #7A9BD1;
   --accent-hover: #94B3DE;
   --accent-soft: rgba(122, 155, 209, 0.12);
-  --divider: #232D3B;
+  --divider: rgba(237, 234, 226, 0.09);
   --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
   --card-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.4);
   --nav-bg: rgba(15, 20, 27, 0.72);
+  --glass-bg: rgba(27, 35, 48, 0.5);
+  --glass-border: rgba(237, 234, 226, 0.1);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --glass-highlight: inset 0 1px 0 rgba(237, 234, 226, 0.12), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  --glass-shadow-strong: 0 14px 44px rgba(0, 0, 0, 0.55);
+  --glow-1: rgba(122, 155, 209, 0.07);
+  --glow-2: rgba(90, 110, 160, 0.05);
 }
 
 /* ---------- Base ---------- */
@@ -52,6 +67,18 @@ body {
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
   transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* 背景微光斑：为毛玻璃提供可折射的层次（克制、学院感） */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 45% at 15% 8%, var(--glow-1), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 85% 90%, var(--glow-2), transparent 70%);
 }
 
 h1, h2, h3 {
@@ -95,21 +122,13 @@ section {
   left: 0;
   right: 0;
   z-index: 100;
-  transition: background 0.3s ease, box-shadow 0.3s ease;
-}
-
-.navbar.scrolled {
-  background: var(--nav-bg);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  backdrop-filter: saturate(180%) blur(20px);
-  box-shadow: 0 1px 0 var(--divider);
 }
 
 .nav-inner {
   max-width: 1024px;
   margin: 0 auto;
   padding: 0 24px;
-  height: 56px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -120,21 +139,48 @@ section {
   font-size: 19px;
   font-weight: 600;
   letter-spacing: 0.01em;
+  padding: 6px 2px;
 }
 
+/* 液态玻璃导航 pill：与页面拉开层级的玻璃容器 */
 .nav-links {
   display: flex;
-  gap: 36px;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 980px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glass-highlight);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
 }
 
 .nav-links a {
   font-size: 14px;
   color: var(--text-secondary);
-  transition: color 0.2s ease;
+  padding: 6px 16px;
+  border-radius: 980px;
+  transition: color 0.2s ease, background 0.2s ease;
 }
 
 .nav-links a:hover {
   color: var(--text);
+  background: var(--accent-soft);
+}
+
+.nav-links a.active {
+  color: #FAF9F6;
+  background: var(--accent);
+}
+
+[data-theme="dark"] .nav-links a.active {
+  color: #0F141B;
+}
+
+/* 滚动后玻璃容器阴影加深，增强浮层感 */
+.navbar.scrolled .nav-links,
+.navbar.scrolled .control-btn {
+  box-shadow: var(--glass-shadow-strong), var(--glass-highlight);
 }
 
 .nav-controls {
@@ -143,8 +189,11 @@ section {
 }
 
 .control-btn {
-  border: 1px solid var(--divider);
-  background: transparent;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: var(--glass-shadow), var(--glass-highlight);
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 600;
