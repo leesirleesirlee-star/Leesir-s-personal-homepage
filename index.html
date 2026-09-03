@@ -87,22 +87,28 @@
         <h2 class="section-title reveal" data-i18n="projects.title">项目</h2>
 
         <div class="project-list">
-          <a class="project-card reveal" href="https://github.com/leesirleesirlee-star/Digital-Resin" target="_blank" rel="noopener noreferrer">
+          <div class="project-card reveal" data-project="resin" role="button" tabindex="0" aria-haspopup="dialog">
             <div class="project-card-top">
               <h3 data-i18n="projects.p1.name">Digital Resin · 离子交换树脂数字孪生模型</h3>
               <span class="badge" data-i18n="projects.status.inprogress">进行中</span>
             </div>
             <p data-i18n="projects.p1.desc">AI for Science 研究项目：构建离子交换树脂的数字孪生模型——输入树脂参数与运行条件，输出吸附性能预测的虚拟实验。</p>
-            <span class="project-link">GitHub <span class="arrow">→</span></span>
-          </a>
+            <div class="project-card-foot">
+              <a class="project-link" href="https://github.com/leesirleesirlee-star/Digital-Resin" target="_blank" rel="noopener noreferrer">GitHub <span class="arrow">→</span></a>
+              <span class="card-hint" data-i18n="projects.hint">查看详情</span>
+            </div>
+          </div>
 
-          <div class="project-card reveal">
+          <div class="project-card reveal" data-project="forum" role="button" tabindex="0" aria-haspopup="dialog">
             <div class="project-card-top">
               <h3 data-i18n="projects.p2.name">大学志愿者论坛小程序</h3>
-              <span class="badge" data-i18n="projects.status.inprogress">进行中</span>
+              <span class="badge" data-i18n="projects.status.planning">筹备中</span>
             </div>
             <p data-i18n="projects.p2.desc">面向大学志愿者社群的微信小程序，支持提出建议、发布公告等功能，服务志愿活动的组织与沟通。</p>
-            <span class="project-tag" data-i18n="projects.p2.tag">微信小程序</span>
+            <div class="project-card-foot">
+              <span class="project-tag" data-i18n="projects.p2.tag">微信小程序</span>
+              <span class="card-hint" data-i18n="projects.hint">查看详情</span>
+            </div>
           </div>
         </div>
       </div>
@@ -161,6 +167,14 @@
   <footer class="footer">
     <p data-i18n="footer.text">© 2026 Nick Lee · V1.0</p>
   </footer>
+
+  <!-- ============ Project Detail Modal (V2) ============ -->
+  <div class="modal-overlay" id="project-modal" aria-hidden="true">
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button class="modal-close" id="modal-close" type="button" aria-label="Close">×</button>
+      <div class="modal-body" id="modal-body"><!-- rendered by JS --></div>
+    </div>
+  </div>
 
   <script src="assets/js/main.js"></script>
 </body>
