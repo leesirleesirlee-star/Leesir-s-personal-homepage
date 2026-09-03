@@ -1,6 +1,6 @@
 /* ============================================================
-   Nick Lee — Personal Homepage  V1.0
-   学院风 · 苹果式简洁 · 浅色/深色双主题
+   Nick Lee — Personal Homepage  V2.0
+   学院风 · 苹果式简洁 · 浅色/深色双主题 · 液态玻璃视觉
    ============================================================ */
 
 /* ---------- Theme Variables ---------- */
@@ -186,6 +186,78 @@ section {
 .nav-controls {
   display: flex;
   gap: 8px;
+}
+
+/* 移动端汉堡按钮（桌面隐藏，V2） */
+.menu-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 34px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: var(--glass-shadow), var(--glass-highlight);
+  border-radius: 15px;
+  cursor: pointer;
+  align-items: center;
+}
+
+.menu-btn-line {
+  width: 15px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.menu-btn.open .menu-btn-line:first-child {
+  transform: translateY(3.5px) rotate(45deg);
+}
+
+.menu-btn.open .menu-btn-line:last-child {
+  transform: translateY(-3.5px) rotate(-45deg);
+}
+
+/* 全屏毛玻璃移动菜单（V2） */
+.mobile-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-elevated);
+  -webkit-backdrop-filter: saturate(180%) blur(28px);
+  backdrop-filter: saturate(180%) blur(28px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  display: none;
+}
+
+.mobile-menu.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.mobile-menu a {
+  font-family: Georgia, "Times New Roman", "Songti SC", "STSong", serif;
+  font-size: 26px;
+  color: var(--text);
+  padding: 12px 24px;
+  border-radius: 16px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.mobile-menu a:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .control-btn {
@@ -647,8 +719,9 @@ section {
 
 /* ---------- Responsive (V1 基础适配) ---------- */
 @media (max-width: 768px) {
-  .nav-links { gap: 20px; }
-  .nav-links a { font-size: 13px; }
+  .nav-links { display: none; }
+  .menu-btn { display: inline-flex; }
+  .mobile-menu { display: flex; }
 
   .section { padding: 80px 20px; }
 

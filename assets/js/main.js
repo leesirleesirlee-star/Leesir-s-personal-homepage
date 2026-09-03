@@ -1,6 +1,7 @@
 /* ============================================================
-   Nick Lee — Personal Homepage  V1.0
+   Nick Lee — Personal Homepage  V2.0
    双语切换 / 双主题切换 / 入场动画 / 导航毛玻璃
+   项目详情模态 / About 卡片展开 / 移动端菜单 / Scroll Spy
    ============================================================ */
 
 (function () {
@@ -76,7 +77,7 @@
       "contact.lead": "欢迎交流学习、科研合作或任何想法。",
       "contact.email": "邮箱",
 
-      "footer.text": "© 2026 Nick Lee · V1.0"
+      "footer.text": "© 2026 Nick Lee · V2.0"
     },
 
     en: {
@@ -147,7 +148,7 @@
       "contact.lead": "Feel free to reach out for academic exchange, research collaboration, or any ideas.",
       "contact.email": "Email",
 
-      "footer.text": "© 2026 Nick Lee · V1.0"
+      "footer.text": "© 2026 Nick Lee · V2.0"
     }
   };
 
@@ -348,6 +349,75 @@
     }
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
+
+    // 移动端菜单
+    var menuBtn = document.getElementById("menu-btn");
+    var mobileMenu = document.getElementById("mobile-menu");
+    if (menuBtn && mobileMenu) {
+      function toggleMenu(open) {
+        var isOpen = typeof open === "boolean" ? open : !mobileMenu.classList.contains("open");
+        mobileMenu.classList.toggle("open", isOpen);
+        menuBtn.classList.toggle("open", isOpen);
+        menuBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        mobileMenu.setAttribute("aria-hidden", isOpen ? "false" : "true");
+        document.body.style.overflow = isOpen ? "hidden" : "";
+      }
+      menuBtn.addEventListener("click", function () { toggleMenu(); });
+      var mobileLinks = mobileMenu.querySelectorAll("a");
+      for (var m = 0; m < mobileLinks.length; m++) {
+        mobileLinks[m].addEventListener("click", function () { toggleMenu(false); });
+      }
+    }
+
+    // Scroll spy：高亮当前 section 对应的导航链接
+    var links = document.querySelectorAll(".nav-links a");
+    var sections = [
+      { id: "about", el: document.getElementById("about") },
+      { id: "projects", el: document.getElementById("projects") },
+      { id: "learning", el: document.getElementById("learning") },
+      { id: "contact", el: document.getElementById("contact") }
+    ];
+    function clearActive() {
+      for (var a = 0; a < links.length; a++) links[a].classList.remove("active");
+    }
+    function setActive(id) {
+      clearActive();
+      for (var a = 0; a < links.length; a++) {
+        if (links[a].getAttribute("href") === "#" + id) links[a].classList.add("active");
+      }
+    }
+    var hero = document.getElementById("hero");
+    if (hero) {
+      var heroObs = new IntersectionObserver(function (entries) {
+        if (entries[0].isIntersecting) clearActive();
+      }, { rootMargin: "-45% 0px -50% 0px" });
+      heroObs.observe(hero);
+    }
+    if ("IntersectionObserver" in window) {
+      var spyObs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) setActive(entry.target.id);
+        });
+      }, { rootMargin: "-45% 0px -50% 0px", threshold: 0 });
+      for (var s = 0; s < sections.length; s++) {
+        if (sections[s].el) spyObs.observe(sections[s].el);
+      }
+    } else {
+      // 降级：滚动时按位置判断
+      var altLinks = links;
+      function onSpyScroll() {
+        var pos = window.scrollY + 120;
+        var current = "";
+        for (var s2 = 0; s2 < sections.length; s2++) {
+          var el = sections[s2].el;
+          if (el && el.offsetTop <= pos) current = sections[s2].id;
+        }
+        if (window.scrollY < 200) clearActive();
+        else setActive(current);
+      }
+      window.addEventListener("scroll", onSpyScroll, { passive: true });
+      onSpyScroll();
+    }
   }
 
   /* ---------- 5b. 项目详情模态（V2） ---------- */

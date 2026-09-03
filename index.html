@@ -32,9 +32,21 @@
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
           </svg>
         </button>
+        <button class="menu-btn" id="menu-btn" type="button" aria-label="Open menu" aria-expanded="false">
+          <span class="menu-btn-line"></span>
+          <span class="menu-btn-line"></span>
+        </button>
       </div>
     </div>
   </nav>
+
+  <!-- ============ Mobile Menu (V2) ============ -->
+  <div class="mobile-menu" id="mobile-menu" aria-hidden="true">
+    <a href="#about" data-i18n="nav.about">关于</a>
+    <a href="#projects" data-i18n="nav.projects">项目</a>
+    <a href="#learning" data-i18n="nav.learning">学习与兴趣</a>
+    <a href="#contact" data-i18n="nav.contact">联系</a>
+  </div>
 
   <main>
 
@@ -177,7 +189,7 @@
 
   <!-- ============ Footer ============ -->
   <footer class="footer">
-    <p data-i18n="footer.text">© 2026 Nick Lee · V1.0</p>
+    <p data-i18n="footer.text">© 2026 Nick Lee · V2.0</p>
   </footer>
 
   <!-- ============ Project Detail Modal (V2) ============ -->
