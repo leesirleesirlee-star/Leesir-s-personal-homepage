@@ -71,6 +71,13 @@
       "learning.i3.desc": "历史思辨、文学心理解析。",
       "learning.i4.title": "规划成长",
       "learning.i4.desc": "升学规划、履历打磨、效率工具研究。",
+      "learning.i5.title": "摄影",
+      "learning.i5.desc": "热爱影像记录与光影表达，后期将上传个人作品，制作线上画展。",
+      "view.info": "信息",
+      "view.chat": "Chat",
+      "view.chat.title": "Chat",
+      "view.chat.desc": "对话功能将在 V3 版本上线，届时可在此与我直接交流。",
+      "view.chat.badge": "V3 敬请期待",
 
       "contact.eyebrow": "Contact",
       "contact.title": "联系我",
@@ -142,6 +149,13 @@
       "learning.i3.desc": "Historical reasoning and literary-psychological analysis.",
       "learning.i4.title": "Growth Planning",
       "learning.i4.desc": "Academic planning, portfolio building, and productivity tools.",
+      "learning.i5.title": "Photography",
+      "learning.i5.desc": "Passionate about visual storytelling and light — personal works and an online gallery coming soon.",
+      "view.info": "Info",
+      "view.chat": "Chat",
+      "view.chat.title": "Chat",
+      "view.chat.desc": "Chat arrives in V3 — a place to talk with me directly. Stay tuned.",
+      "view.chat.badge": "Coming in V3",
 
       "contact.eyebrow": "Contact",
       "contact.title": "Get in Touch",
@@ -365,7 +379,11 @@
       menuBtn.addEventListener("click", function () { toggleMenu(); });
       var mobileLinks = mobileMenu.querySelectorAll("a");
       for (var m = 0; m < mobileLinks.length; m++) {
-        mobileLinks[m].addEventListener("click", function () { toggleMenu(false); });
+        mobileLinks[m].addEventListener("click", function () {
+          /* chat 视图下点锚点：先回到信息页再跳转 */
+          if (document.body.getAttribute("data-view") === "chat") setView("info");
+          toggleMenu(false);
+        });
       }
     }
 
@@ -441,7 +459,7 @@
       : "";
 
     var html = '';
-    html += '<p class="eyebrow">' + (lang === "zh" ? "项目详情" : "Project Detail") + '</p>';
+    html += '<p class="modal-eyebrow">' + (lang === "zh" ? "项目详情" : "Project Detail") + '</p>';
     html += '<h2 class="modal-title" id="modal-title">' + p.name + '</h2>';
     html += '<div class="modal-meta">';
     html += '<span class="badge">' + p.badge + '</span>';
@@ -551,6 +569,56 @@
     }
   }
 
+  /* ---------- 5d. 视图切换（Info / Chat，仿 ChatGPT 顶部切换） ---------- */
+  function setView(view) {
+    if (view !== "info" && view !== "chat") return;
+    document.body.setAttribute("data-view", view);
+
+    var btns = document.querySelectorAll(".view-switch-btn");
+    for (var i = 0; i < btns.length; i++) {
+      var on = btns[i].getAttribute("data-view-target") === view;
+      btns[i].classList.toggle("active", on);
+      btns[i].setAttribute("aria-selected", on ? "true" : "false");
+    }
+
+    /* 切视图前关掉打开中的模态与移动端菜单，避免浮层残留 */
+    if (openProjectId) closeProjectModal();
+
+    var mobileMenu = document.getElementById("mobile-menu");
+    var menuBtn = document.getElementById("menu-btn");
+    if (mobileMenu && mobileMenu.classList.contains("open")) {
+      mobileMenu.classList.remove("open");
+      mobileMenu.setAttribute("aria-hidden", "true");
+      if (menuBtn) {
+        menuBtn.classList.remove("open");
+        menuBtn.setAttribute("aria-expanded", "false");
+      }
+      document.body.style.overflow = "";
+    }
+
+    /* 立即回顶（绕过 CSS smooth，避免切视图后停在原滚动位置） */
+    document.documentElement.style.scrollBehavior = "auto";
+    window.scrollTo(0, 0);
+    document.documentElement.style.scrollBehavior = "";
+  }
+
+  function initViewSwitch() {
+    var btns = document.querySelectorAll(".view-switch-btn");
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].addEventListener("click", function () {
+        setView(this.getAttribute("data-view-target"));
+      });
+    }
+
+    /* chat 视图下点 logo：先回到信息页 */
+    var logo = document.querySelector(".nav-logo");
+    if (logo) {
+      logo.addEventListener("click", function () {
+        if (document.body.getAttribute("data-view") === "chat") setView("info");
+      });
+    }
+  }
+
   /* ---------- 6. 初始化 ---------- */
   applyTheme(detectTheme());
   applyLang(detectLang());
@@ -558,4 +626,5 @@
   initNavbar();
   initModal();
   initExpand();
+  initViewSwitch();
 })();
