@@ -1,7 +1,7 @@
 # 项目推进记录 — Nick Lee Personal Homepage
 
 > 本文档是项目的**总进度档案**，用于任务暂停/恢复时避免信息断层。
-> 最后更新：2026-09-08（V2.1 完成：navbar 滚动分层 + 模态修复 + 摄影特长 + Info/Chat 切换）
+> 最后更新：2026-09-08（V2.1 完成：navbar 滚动分层 + 模态修复 + 摄影特长 + Info/Chat 切换 + reveal 重播 + 返回顶部）
 >
 > 重要：本人中文名为 **李泽毓**（Nick Lee / Li Zeyu），**不是**李泽民。此前所有文件中已统一更正。
 
@@ -34,6 +34,7 @@
 
 | Commit | 内容 / 阶段 |
 |---|---|
+| `65a37ae` | V2.1: reveal 每次滚动重播 + 返回顶部按钮 |
 | `f5e64df` | V2.1: navbar 滚动分层 + 模态修复 + 摄影特长 + Info/Chat 视图切换 |
 | `d799d62` | docs: 新增总进度档案（本文件） |
 | `123c967` | docs: V2 实现证据记录（v2.0 指向此） |
@@ -53,9 +54,9 @@
 
 | 文件 | 行数 | 说明 |
 |---|---|---|
-| `index.html` | 233 | 页面结构：navbar（含 Info/Chat 切换）/ hero / about / projects / learning / contact / footer + 模态容器 + 移动菜单 + chat 占位视图 |
-| `assets/js/main.js` | 630 | IIFE + ES5 var 风格；i18n 双语词典、PROJECTS 数据、theme/lang/reveal/navbar/modal/expand/viewSwitch 逻辑 |
-| `assets/css/styles.css` | 1107 | 主题变量（液态玻璃 tokens）、各区块样式、模态样式、V2.1 视图切换/chat 样式、响应式 |
+| `index.html` | 240 | 页面结构：navbar（含 Info/Chat 切换）/ hero / about / projects / learning / contact / footer + 模态容器 + 移动菜单 + chat 占位视图 + 返回顶部按钮 |
+| `assets/js/main.js` | 649 | IIFE + ES5 var 风格；i18n 双语词典、PROJECTS 数据、theme/lang/reveal/navbar/modal/expand/viewSwitch/backToTop 逻辑 |
+| `assets/css/styles.css` | 1155 | 主题变量（液态玻璃 tokens）、各区块样式、模态样式、V2.1 视图切换/chat/返回顶部样式、响应式 |
 | `docs/v1-design.md` | 146 | V1 设计文档（需求、信息架构、视觉、验收对照） |
 | `docs/v2-design.md` | 133 | V2 设计文档（4 需求、拆分、实现证据、版本记录） |
 | `docs/digital-resin.md` | 62 | Digital Resin 完整项目素材（V2 详情数据来源） |
@@ -83,6 +84,7 @@
 - **修复② 模态字体/遮挡**：去除 `.modal-close` 负 margin 重叠 hack（原 `margin: 14px 14px -48px 0` + `.modal-body margin-top:-44px`），改为正常流内布局（按钮行占位 50px，内容从其下方开始，永不被遮挡）；新增 `.modal-eyebrow` 样式并修正 JS 输出（原 `class="eyebrow"` 无对应 CSS，导致字体不一致）。
 - **新增① 摄影特长**：Learning & Interests 第 5 张卡（`learning.i5.*`），文案预留"后期上传个人作品、制作线上画展"。
 - **新增② Info/Chat 视图切换**：仿 ChatGPT 顶部 segmented 控件（`.view-switch`，navbar logo 右侧）；`<main id="view-info">` 与原内容、`<main id="view-chat">` 空占位（图标 + 文案 + "V3 敬请期待" badge）；状态机由 `body[data-view]` CSS 驱动（无 JS 也可用）；chat 视图隐藏 info/footer、禁用锚点 pill；≤768px 切换控件收进 `#mobile-menu`；切视图自动关模态/关菜单/回顶。
+- **新增③ reveal 重播 + 返回顶部**（`65a37ae`）：修复 reveal 仅播一次的问题（原 `observer.unobserve` 永久移除；改为例外——`initReveal` 现按进出视口来回切换 `.visible` 类，每次滚入都重播渐现）；新增 `.back-to-top` 玻璃圆钮（右下角固定，滚动 >400px 显示 `.show`，点击 `window.scrollTo({top:0, behavior:"smooth"})` 回顶；z-index 85 低于移动菜单 90 / 模态 200，不会悬浮其上；≤560px 缩至 42px 并下移；chat 视图页面不滚动故不显示）。
 - **自检**（用户要求提交前必做）：jsc 仅预期 ReferenceError；HTTP 全 200；i18n 56 HTML key 全部命中 zh/en（两词典 68 key 完全对齐）；标签配对平衡；模态遮挡走查（按钮行 50px + 内容 62px 起，滚动重叠仅 6px 且按钮有不透明玻璃底）；769px 临界宽度 navbar 排布核算通过。
 
 ---
