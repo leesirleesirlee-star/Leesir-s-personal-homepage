@@ -336,7 +336,7 @@
     applyTheme(current === "dark" ? "light" : "dark");
   });
 
-  /* ---------- 4. 入场动画（IntersectionObserver） ---------- */
+  /* ---------- 4. 入场动画（IntersectionObserver，滚入重播） ---------- */
   function initReveal() {
     var items = document.querySelectorAll(".reveal");
     if (!("IntersectionObserver" in window)) {
@@ -345,9 +345,11 @@
     }
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
+        /* 滚入视口→显现；离开→回到初始态，下次滚入再次重播 */
         if (entry.isIntersecting) {
           entry.target.classList.add("visible");
-          observer.unobserve(entry.target);
+        } else {
+          entry.target.classList.remove("visible");
         }
       });
     }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
@@ -619,6 +621,22 @@
     }
   }
 
+  /* ---------- 5e. 返回顶部按钮 ---------- */
+  function initBackToTop() {
+    var btn = document.getElementById("back-to-top");
+    if (!btn) return;
+    function onScroll() {
+      var show = window.scrollY > 400;
+      btn.classList.toggle("show", show);
+      btn.setAttribute("aria-hidden", show ? "false" : "true");
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    btn.addEventListener("click", function () {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+
   /* ---------- 6. 初始化 ---------- */
   applyTheme(detectTheme());
   applyLang(detectLang());
@@ -627,4 +645,5 @@
   initModal();
   initExpand();
   initViewSwitch();
+  initBackToTop();
 })();
