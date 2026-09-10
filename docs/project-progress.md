@@ -24,9 +24,9 @@
 
 ---
 
-## 3. git 状态（截至 2026-09-08）
+## 3. git 状态（截至 2026-09-10）
 
-- 分支：`main`。工作区**干净**（源码无未提交改动）。
+- 分支：`main`。工作区**干净**（源码无未提交改动）；仅仓库根留有一张用户提供的原始头像 JPEG（未跟踪，暂不提交/可删）。
 - 未跟踪：`.opencode/skills/ppt-generator/`、`.opencode/skills/skill-8e15730e/`（DeepWorks 工具目录，**不属于本项目，不提交**）。
 - Tag：`v1.0`（指向 `a99c6d7`）、`v2.0`（指向 `123c967`）。
 
@@ -34,6 +34,7 @@
 
 | Commit | 内容 / 阶段 |
 |---|---|
+| `52828e9` | V2.1: hero 打磨 — 头像视觉锚点 + 状态徽标 + 更清晰的定位陈述 |
 | `a8baa33` | V2.1: About 卡片隔离加固 + 资源版本号（cache-busting） |
 | `024c83d` | V2.1: About 卡片展开隔离 + 过渡动画修复 |
 | `65a37ae` | V2.1: reveal 每次滚动重播 + 返回顶部按钮 |
@@ -52,13 +53,14 @@
 
 ---
 
-## 4. 文件清单与规模（截至 2026-09-08）
+## 4. 文件清单与规模（截至 2026-09-10）
 
 | 文件 | 行数 | 说明 |
 |---|---|---|
-| `index.html` | 240 | 页面结构：navbar（含 Info/Chat 切换）/ hero / about / projects / learning / contact / footer + 模态容器 + 移动菜单 + chat 占位视图 + 返回顶部按钮 |
-| `assets/js/main.js` | 649 | IIFE + ES5 var 风格；i18n 双语词典、PROJECTS 数据、theme/lang/reveal/navbar/modal/expand/viewSwitch/backToTop 逻辑 |
-| `assets/css/styles.css` | 1171 | 主题变量（液态玻璃 tokens）、各区块样式、模态样式、V2.1 视图切换/chat/返回顶部/about 卡片展开动画样式、响应式 |
+| `index.html` | 259 | 页面结构：navbar（含 Info/Chat 切换）/ hero（双栏：文案 + 头像框）/ about / projects / learning / contact / footer + 模态容器 + 移动菜单 + chat 占位视图 + 返回顶部按钮 |
+| `assets/js/main.js` | 655 | IIFE + ES5 var 风格；i18n 双语词典、PROJECTS 数据、theme/lang/reveal/navbar/modal/expand/viewSwitch/backToTop 逻辑 |
+| `assets/css/styles.css` | 1304 | 主题变量（液态玻璃 tokens）、各区块样式、模态样式、V2.1 视图切换/chat/返回顶部/about 卡片展开/hero 双栏样式、响应式 |
+| `assets/img/portrait.jpg` | — | Hero 头像视觉锚点（760×760，132K；由用户提供线稿头像缩放而来） |
 | `docs/v1-design.md` | 146 | V1 设计文档（需求、信息架构、视觉、验收对照） |
 | `docs/v2-design.md` | 133 | V2 设计文档（4 需求、拆分、实现证据、版本记录） |
 | `docs/digital-resin.md` | 62 | Digital Resin 完整项目素材（V2 详情数据来源） |
@@ -81,14 +83,15 @@
 - **R4**（`1930eb3`）移动端 + scroll spy：汉堡按钮 `#menu-btn`、全屏毛玻璃 `#mobile-menu`、IntersectionObserver scroll spy（含降级）、footer 改 V2.0、768px 断点调整、文件头注释升级 V2.0。
 - **R5 收尾**（`123c967`）V2 实现证据记录，tag `v2.0`。
 
-### V2.1 — 修复 + 小特性（`f5e64df`，2026-09-08）
+### V2.1 — 修复 + 小特性（`f5e64df` 起，2026-09-08 ～ 09-10）
 - **修复① navbar 滚动分层**：`.navbar.scrolled` 整条 64px 横条毛玻璃化（复用既有 `--nav-bg` 变量 + blur 20px + 底部 hairline），未滚动时保持透明。
 - **修复② 模态字体/遮挡**：去除 `.modal-close` 负 margin 重叠 hack（原 `margin: 14px 14px -48px 0` + `.modal-body margin-top:-44px`），改为正常流内布局（按钮行占位 50px，内容从其下方开始，永不被遮挡）；新增 `.modal-eyebrow` 样式并修正 JS 输出（原 `class="eyebrow"` 无对应 CSS，导致字体不一致）。
 - **新增① 摄影特长**：Learning & Interests 第 5 张卡（`learning.i5.*`），文案预留"后期上传个人作品、制作线上画展"。
 - **新增② Info/Chat 视图切换**：仿 ChatGPT 顶部 segmented 控件（`.view-switch`，navbar logo 右侧）；`<main id="view-info">` 与原内容、`<main id="view-chat">` 空占位（图标 + 文案 + "V3 敬请期待" badge）；状态机由 `body[data-view]` CSS 驱动（无 JS 也可用）；chat 视图隐藏 info/footer、禁用锚点 pill；≤768px 切换控件收进 `#mobile-menu`；切视图自动关模态/关菜单/回顶。
 - **新增③ reveal 重播 + 返回顶部**（`65a37ae`）：修复 reveal 仅播一次的问题（原 `observer.unobserve` 永久移除；改为例外——`initReveal` 现按进出视口来回切换 `.visible` 类，每次滚入都重播渐现）；新增 `.back-to-top` 玻璃圆钮（右下角固定，滚动 >400px 显示 `.show`，点击 `window.scrollTo({top:0, behavior:"smooth"})` 回顶；z-index 85 低于移动菜单 90 / 模态 200，不会悬浮其上；≤560px 缩至 42px 并下移；chat 视图页面不滚动故不显示）。
-- **修复③ About 卡片展开**（`024c83d`，用户反馈）：①现象——点一张卡展开，同排另两张也"展开"但不显示内容。**根因是 CSS 而非 JS**：`.feature-grid` 是 grid 且未设 `align-items`，默认 `stretch` 把同行卡片拉伸到最高卡高度；而 `initExpand` 本身只 toggle 被点卡片的 `.expanded`。修复：`.feature-grid` 加 `align-items: start`。②动画连贯性：`.feature-more` 展开由固定 `max-height: 0→320px` 改为 `grid-template-rows: 0fr→1fr`（高度精确跟随内容、缓动自然，且不裁剪较长英文文案），子元素 `overflow:hidden; min-height:0`；`.feature-card.expanded` 增加阴影层次；`prefers-reduced-motion` 下禁用卡片/展开过渡。③后续加固（`a8baa33`）：用户反馈"仍变长"——排查确认服务器返回的 CSS 已正确（无内联样式/无第二样式表/无 stretch 覆盖），判断为**浏览器缓存了旧 CSS**；故给 `.feature-card` 增加 `align-self: start` 作第二道保险，并在 `index.html` 给 css/js 加 `?v=` 版本号强制刷新（**改样式后需 bump 版本号**，当前 `2.1.4`）。
-- **自检**（用户要求提交前必做）：jsc 仅预期 ReferenceError；HTTP 全 200；i18n 56 HTML key 全部命中 zh/en（两词典 68 key 完全对齐）；标签配对平衡；模态遮挡走查（按钮行 50px + 内容 62px 起，滚动重叠仅 6px 且按钮有不透明玻璃底）；769px 临界宽度 navbar 排布核算通过。
+- **修复③ About 卡片展开**（`024c83d`，用户反馈）：①现象——点一张卡展开，同排另两张也"展开"但不显示内容。**根因是 CSS 而非 JS**：`.feature-grid` 是 grid 且未设 `align-items`，默认 `stretch` 把同行卡片拉伸到最高卡高度；而 `initExpand` 本身只 toggle 被点卡片的 `.expanded`。修复：`.feature-grid` 加 `align-items: start`。②动画连贯性：`.feature-more` 展开由固定 `max-height: 0→320px` 改为 `grid-template-rows: 0fr→1fr`（高度精确跟随内容、缓动自然，且不裁剪较长英文文案），子元素 `overflow:hidden; min-height:0`；`.feature-card.expanded` 增加阴影层次；`prefers-reduced-motion` 下禁用卡片/展开过渡。③后续加固（`a8baa33`）：用户反馈"仍变长"——排查确认服务器返回的 CSS 已正确（无内联样式/无第二样式表/无 stretch 覆盖），判断为**浏览器缓存了旧 CSS**；故给 `.feature-card` 增加 `align-self: start` 作第二道保险，并在 `index.html` 给 css/js 加 `?v=` 版本号强制刷新（**改样式后需 bump 版本号**，当前 `2.1.5`）。
+- **新增④ hero 打磨**（`52828e9`，用户反馈 + 设计建议）：①结构——hero 由单列居中改为 `.hero-inner` 双栏 grid（左文案 / 右头像，`minmax(0,1fr) minmax(0,0.8fr)`，gap 64px），左列 `.hero-content` max-width 560px。②视觉锚点——新增 `.hero-figure` / `.hero-portrait-frame`（`min(100%,400px)`、1:1、圆角 28px、白底）承载 `assets/img/portrait.jpg`；**用圆角方框而非圆形**，以保留头像自带的同心圆/HUD 构图；暗色主题下 `filter: invert(1)` + 底色 `#0B0F14`，呈现黑底白线。③信息层次——顶部两枚玻璃徽标 `.hero-pill`（`.hero-pill--live` 含绿色呼吸点 `.status-dot`＋`hero.location`"深圳 · 开放交流"；另一枚 `hero.exploring`"当前探索 · AI for Science"），其后 `.hero-positioning` 定位陈述、`hero.tagline` 第一人称文案、`.hero-school`（沿用 `hero.identity`）。④响应式——≤900px 收为单列、头像 `order:-1` 置于顶部（200px）；`prefers-reduced-motion` 下停用呼吸点动画。⑤i18n 新增 zh/en 键 `hero.location` / `hero.exploring` / `hero.positioning`，并改写 `hero.tagline`、`hero.identity`。**注**：i18n 仅替换 `textContent`，故返回顶部 `aria-label` 与头像 `alt` 为硬编码中文。
+- **自检**（用户要求提交前必做）：jsc 仅预期 ReferenceError；HTTP 全 200（含 `assets/img/portrait.jpg`）；i18n 59 HTML key 全部命中 zh/en（两词典 71 key 完全对齐）；标签配对平衡；CSS 括号平衡；模态遮挡走查（按钮行 50px + 内容 62px 起，滚动重叠仅 6px 且按钮有不透明玻璃底）；769px 临界宽度 navbar 排布核算通过。
 
 ---
 
@@ -134,12 +137,13 @@
 ## 9. 关键实现细节（接手必读）
 
 - **`main.js` 是 IIFE + ES5 `var` 风格**，新增代码可用 ES6。词典变量 `i18n`（zh/en 两层）。函数：`applyLang` / `applyTheme` / `detectLang` / `detectTheme` / `initReveal` / `initNavbar`（含移动菜单 + scroll spy）/ `initModal` / `initExpand` / `setView` / `initViewSwitch`。
-- **真实类名**（务必不要凭记忆假设）：`.project-card-top` / `.project-link` / `.project-tag` / `.badge` / `.feature-card` / `.interest-card` / `.contact-item` / `.view-switch-btn` / `.modal-eyebrow`。**不存在** `.note` / `.contact-card` / `.eyebrow`。
+- **真实类名**（务必不要凭记忆假设）：`.project-card-top` / `.project-link` / `.project-tag` / `.badge` / `.feature-card` / `.interest-card` / `.contact-item` / `.view-switch-btn` / `.modal-eyebrow`；hero 区：`.hero-inner` / `.hero-content` / `.hero-pills` / `.hero-pill` / `.hero-pill--live` / `.status-dot` / `.hero-positioning` / `.hero-school` / `.hero-figure` / `.hero-portrait-frame` / `.hero-portrait`。**不存在** `.note` / `.contact-card` / `.eyebrow`。
 - 项目卡1 是 `<div class="project-card reveal" data-project="resin" ...>`，**不是**整卡 `<a>`（V2 已改）。
 - 论坛卡：`data-project="forum"`，badge key＝`projects.status.planning`（筹备中/Planning）。
 - 模态容器：`#project-modal`（`.modal-overlay`）内 `#modal-body` 由 JS 渲染；`#modal-close` 关闭。V2.1 起关闭按钮为正常流内 sticky 布局，**不要**恢复负 margin 重叠写法。
 - 视图切换（V2.1）：`body[data-view="info|chat"]` 驱动，`#view-info` / `#view-chat` 两个 `<main>`；`.view-switch` 控件桌面在 navbar、移动在 `#mobile-menu`；chat 视图下锚点链接点击会先 `setView("info")`。
-- About 卡片展开（V2.1 `024c83d`）：`.feature-card[data-expand]` 点击/回车 toggle `.expanded`，JS 仅作用于被点卡片。**`.feature-grid` 必须保持 `align-items: start`**——grid 默认 `stretch` 会让展开时同排另两张卡被拉伸变高（即用户反馈的"三张一起展开"）。`.feature-more` 展开机制为 `grid-template-rows: 0fr→1fr`（子元素 `overflow:hidden; min-height:0`），**不要**改回固定 `max-height`。`.feature-card` 另有 `align-self: start` 作双保险。**改 CSS/JS 后需 bump `index.html` 里 `?v=` 版本号**（当前 `2.1.4`），否则浏览器可能沿用缓存的旧样式。
+- About 卡片展开（V2.1 `024c83d`）：`.feature-card[data-expand]` 点击/回车 toggle `.expanded`，JS 仅作用于被点卡片。**`.feature-grid` 必须保持 `align-items: start`**——grid 默认 `stretch` 会让展开时同排另两张卡被拉伸变高（即用户反馈的"三张一起展开"）。`.feature-more` 展开机制为 `grid-template-rows: 0fr→1fr`（子元素 `overflow:hidden; min-height:0`），**不要**改回固定 `max-height`。`.feature-card` 另有 `align-self: start` 作双保险。**改 CSS/JS 后需 bump `index.html` 里 `?v=` 版本号**（当前 `2.1.5`），否则浏览器可能沿用缓存的旧样式。
+- Hero 头像（V2.1 `52828e9`）：`assets/img/portrait.jpg`（760×760）由用户提供的线稿头像缩放而来（无 PIL/magick，用 macOS `sips -Z 760`）；`.hero-portrait-frame` 采用圆角方框，**不要**改成圆形（会破坏线稿自带的同心圆构图）；暗色主题靠 `filter: invert(1)` 反相为黑底白线。`.hero-inner` 为 grid 双栏，≤900px 单列且头像置顶。
 - 移动端：`#menu-btn`（汉堡）+ `#mobile-menu`（全屏菜单），768px 断点显示。
 - Digital Resin 详情数据源：`docs/digital-resin.md` + `main.js` 的 `PROJECTS.resin`（zh/en）。
 
