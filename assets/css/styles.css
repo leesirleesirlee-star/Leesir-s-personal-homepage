@@ -487,6 +487,8 @@ section {
 }
 
 .feature-card {
+  /* 第二道保险：卡片自身不被拉伸（覆盖 grid 容器 align-items 的影响） */
+  align-self: start;
   background: var(--bg-elevated);
   border: 1px solid var(--glass-border);
   border-radius: 18px;
