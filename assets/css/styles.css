@@ -482,6 +482,8 @@ section {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
+  /* 关键：卡片各自按内容定高，展开一张不会拉伸同排另两张（默认 stretch 会一起变高） */
+  align-items: start;
 }
 
 .feature-card {
@@ -497,21 +499,31 @@ section {
     background 0.3s ease, border-color 0.3s ease;
 }
 
+/* 展开动画：grid-template-rows 0fr→1fr，高度精确跟随内容、过渡连贯，
+   且不像固定 max-height 那样会裁剪较长文案（如英文详情） */
 .feature-card .feature-more {
-  max-height: 0;
+  display: grid;
+  grid-template-rows: 0fr;
   opacity: 0;
+  margin-top: 0;
+  transition: grid-template-rows 0.42s cubic-bezier(0.25, 0.8, 0.25, 1),
+    opacity 0.32s ease, margin-top 0.32s ease;
+}
+
+.feature-card .feature-more > * {
   overflow: hidden;
-  transition: max-height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease, margin-top 0.3s ease;
+  min-height: 0;
 }
 
 .feature-card.expanded .feature-more {
-  max-height: 320px;
+  grid-template-rows: 1fr;
   opacity: 1;
   margin-top: 14px;
 }
 
 .feature-card.expanded {
   border-color: var(--accent);
+  box-shadow: var(--card-shadow-hover);
 }
 
 .feature-hint {
@@ -532,6 +544,8 @@ section {
 
 @media (prefers-reduced-motion: reduce) {
   .feature-hint { opacity: 1; transform: none; }
+  .feature-card,
+  .feature-card .feature-more { transition: none; }
 }
 
 .feature-card:hover {
