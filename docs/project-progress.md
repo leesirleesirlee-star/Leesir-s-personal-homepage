@@ -34,6 +34,7 @@
 
 | Commit | 内容 / 阶段 |
 |---|---|
+| `024c83d` | V2.1: About 卡片展开隔离 + 过渡动画修复 |
 | `65a37ae` | V2.1: reveal 每次滚动重播 + 返回顶部按钮 |
 | `f5e64df` | V2.1: navbar 滚动分层 + 模态修复 + 摄影特长 + Info/Chat 视图切换 |
 | `d799d62` | docs: 新增总进度档案（本文件） |
@@ -56,7 +57,7 @@
 |---|---|---|
 | `index.html` | 240 | 页面结构：navbar（含 Info/Chat 切换）/ hero / about / projects / learning / contact / footer + 模态容器 + 移动菜单 + chat 占位视图 + 返回顶部按钮 |
 | `assets/js/main.js` | 649 | IIFE + ES5 var 风格；i18n 双语词典、PROJECTS 数据、theme/lang/reveal/navbar/modal/expand/viewSwitch/backToTop 逻辑 |
-| `assets/css/styles.css` | 1155 | 主题变量（液态玻璃 tokens）、各区块样式、模态样式、V2.1 视图切换/chat/返回顶部样式、响应式 |
+| `assets/css/styles.css` | 1169 | 主题变量（液态玻璃 tokens）、各区块样式、模态样式、V2.1 视图切换/chat/返回顶部/about 卡片展开动画样式、响应式 |
 | `docs/v1-design.md` | 146 | V1 设计文档（需求、信息架构、视觉、验收对照） |
 | `docs/v2-design.md` | 133 | V2 设计文档（4 需求、拆分、实现证据、版本记录） |
 | `docs/digital-resin.md` | 62 | Digital Resin 完整项目素材（V2 详情数据来源） |
@@ -85,6 +86,7 @@
 - **新增① 摄影特长**：Learning & Interests 第 5 张卡（`learning.i5.*`），文案预留"后期上传个人作品、制作线上画展"。
 - **新增② Info/Chat 视图切换**：仿 ChatGPT 顶部 segmented 控件（`.view-switch`，navbar logo 右侧）；`<main id="view-info">` 与原内容、`<main id="view-chat">` 空占位（图标 + 文案 + "V3 敬请期待" badge）；状态机由 `body[data-view]` CSS 驱动（无 JS 也可用）；chat 视图隐藏 info/footer、禁用锚点 pill；≤768px 切换控件收进 `#mobile-menu`；切视图自动关模态/关菜单/回顶。
 - **新增③ reveal 重播 + 返回顶部**（`65a37ae`）：修复 reveal 仅播一次的问题（原 `observer.unobserve` 永久移除；改为例外——`initReveal` 现按进出视口来回切换 `.visible` 类，每次滚入都重播渐现）；新增 `.back-to-top` 玻璃圆钮（右下角固定，滚动 >400px 显示 `.show`，点击 `window.scrollTo({top:0, behavior:"smooth"})` 回顶；z-index 85 低于移动菜单 90 / 模态 200，不会悬浮其上；≤560px 缩至 42px 并下移；chat 视图页面不滚动故不显示）。
+- **修复③ About 卡片展开**（`024c83d`，用户反馈）：①现象——点一张卡展开，同排另两张也"展开"但不显示内容。**根因是 CSS 而非 JS**：`.feature-grid` 是 grid 且未设 `align-items`，默认 `stretch` 把同行卡片拉伸到最高卡高度；而 `initExpand` 本身只 toggle 被点卡片的 `.expanded`。修复：`.feature-grid` 加 `align-items: start`。②动画连贯性：`.feature-more` 展开由固定 `max-height: 0→320px` 改为 `grid-template-rows: 0fr→1fr`（高度精确跟随内容、缓动自然，且不裁剪较长英文文案），子元素 `overflow:hidden; min-height:0`；`.feature-card.expanded` 增加阴影层次；`prefers-reduced-motion` 下禁用卡片/展开过渡。
 - **自检**（用户要求提交前必做）：jsc 仅预期 ReferenceError；HTTP 全 200；i18n 56 HTML key 全部命中 zh/en（两词典 68 key 完全对齐）；标签配对平衡；模态遮挡走查（按钮行 50px + 内容 62px 起，滚动重叠仅 6px 且按钮有不透明玻璃底）；769px 临界宽度 navbar 排布核算通过。
 
 ---
@@ -136,6 +138,7 @@
 - 论坛卡：`data-project="forum"`，badge key＝`projects.status.planning`（筹备中/Planning）。
 - 模态容器：`#project-modal`（`.modal-overlay`）内 `#modal-body` 由 JS 渲染；`#modal-close` 关闭。V2.1 起关闭按钮为正常流内 sticky 布局，**不要**恢复负 margin 重叠写法。
 - 视图切换（V2.1）：`body[data-view="info|chat"]` 驱动，`#view-info` / `#view-chat` 两个 `<main>`；`.view-switch` 控件桌面在 navbar、移动在 `#mobile-menu`；chat 视图下锚点链接点击会先 `setView("info")`。
+- About 卡片展开（V2.1 `024c83d`）：`.feature-card[data-expand]` 点击/回车 toggle `.expanded`，JS 仅作用于被点卡片。**`.feature-grid` 必须保持 `align-items: start`**——grid 默认 `stretch` 会让展开时同排另两张卡被拉伸变高（即用户反馈的"三张一起展开"）。`.feature-more` 展开机制为 `grid-template-rows: 0fr→1fr`（子元素 `overflow:hidden; min-height:0`），**不要**改回固定 `max-height`。
 - 移动端：`#menu-btn`（汉堡）+ `#mobile-menu`（全屏菜单），768px 断点显示。
 - Digital Resin 详情数据源：`docs/digital-resin.md` + `main.js` 的 `PROJECTS.resin`（zh/en）。
 
