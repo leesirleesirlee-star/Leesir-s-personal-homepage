@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Nick Lee 李泽毓 — Personal Homepage">
   <title>Nick Lee 李泽毓 · Personal Homepage</title>
-  <link rel="stylesheet" href="assets/css/styles.css?v=2.1.4">
+  <link rel="stylesheet" href="assets/css/styles.css?v=2.1.5">
 </head>
 <body data-view="info">
 
@@ -62,16 +62,35 @@
 
     <!-- ============ Hero ============ -->
     <section class="hero" id="hero">
-      <div class="hero-content reveal">
-        <p class="hero-eyebrow" data-i18n="hero.eyebrow">Nick Lee</p>
-        <h1 class="hero-name" data-i18n="hero.name">李泽毓</h1>
-        <p class="hero-identity" data-i18n="hero.identity">天津大学香港理工大学深圳未来技术学院 · 计算机方向</p>
-        <p class="hero-tagline" data-i18n="hero.tagline">深耕数理基础，热衷梳理知识体系。为海外申研积累，未来希望从事金融行业。</p>
-        <div class="hero-cta">
-          <a href="#projects" class="btn btn-primary" data-i18n="hero.ctaPrimary">查看我的项目</a>
-          <a href="#contact" class="btn btn-secondary" data-i18n="hero.ctaSecondary">联系我</a>
+      <div class="hero-inner">
+        <div class="hero-content reveal">
+          <div class="hero-pills">
+            <span class="hero-pill hero-pill--live">
+              <span class="status-dot" aria-hidden="true"></span>
+              <span data-i18n="hero.location">深圳 · 开放交流</span>
+            </span>
+            <span class="hero-pill" data-i18n="hero.exploring">当前探索 · AI for Science</span>
+          </div>
+
+          <p class="hero-eyebrow" data-i18n="hero.eyebrow">Nick Lee</p>
+          <h1 class="hero-name" data-i18n="hero.name">李泽毓</h1>
+          <p class="hero-positioning" data-i18n="hero.positioning">计算机科学学生，探索 AI、数学与金融</p>
+          <p class="hero-tagline" data-i18n="hero.tagline">喜欢把复杂的问题拆开、把零散的线索串成体系；平时用数学和代码理解世界，也一步步朝着金融方向走去。</p>
+          <p class="hero-school" data-i18n="hero.identity">天津大学 × 香港理工大学 · 深圳未来技术学院</p>
+
+          <div class="hero-cta">
+            <a href="#projects" class="btn btn-primary" data-i18n="hero.ctaPrimary">查看我的项目</a>
+            <a href="#contact" class="btn btn-secondary" data-i18n="hero.ctaSecondary">联系我</a>
+          </div>
+        </div>
+
+        <div class="hero-figure reveal">
+          <div class="hero-portrait-frame">
+            <img class="hero-portrait" src="assets/img/portrait.jpg" alt="Nick Lee 李泽毓" width="760" height="760" fetchpriority="high" decoding="async">
+          </div>
         </div>
       </div>
+
       <a href="#about" class="scroll-hint" aria-label="Scroll down">
         <span class="scroll-hint-text" data-i18n="hero.scroll">向下滚动</span>
         <span class="scroll-hint-arrow"></span>
@@ -235,6 +254,6 @@
     </svg>
   </button>
 
-  <script src="assets/js/main.js?v=2.1.4"></script>
+  <script src="assets/js/main.js?v=2.1.5"></script>
 </body>
 </html>
