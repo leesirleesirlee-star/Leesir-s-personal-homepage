@@ -18,7 +18,7 @@ PRD 硬性要求：公开部署（V3.1）、Feedback 系统（V3.2，免登录 +
 | 决策点 | 结论 |
 |---|---|
 | V3 范围 | **含项目互动数据**：留言 / 浏览量 / 喜爱量，与 Feedback 同批实现，复用同一 Supabase 后端（PRD「One Type of Problem at a Time」） |
-| 部署平台 | **GitHub Pages**（免费、与仓库一体；anon key 硬编码，安全性由 RLS 保证，见 §7） |
+| 部署平台 | **双平台部署**（2026-09-17 修订）：**Cloudflare Pages 主站**（国内访问更稳、内置 Web Analytics、Final 阶段 Workers 可代理 LLM API）+ **GitHub Pages 镜像备份**（与仓库一体）；用户测试时选用更稳定的链接。anon key 硬编码，安全性由 RLS 保证，见 §7 |
 | Chat 页面 | **保持 V2.2 静态布局**，真实对话留到 Final Extension（对接 PRD Option C 知识库问答） |
 | Supabase | 本人已注册账号，项目创建与配置按 §9 指引执行 |
 
@@ -27,7 +27,7 @@ PRD 硬性要求：公开部署（V3.1）、Feedback 系统（V3.2，免登录 +
 ```
 Visitor
    ↓ HTTPS
-GitHub Pages（纯静态托管：index.html + assets/）
+Cloudflare Pages 主站 / GitHub Pages 镜像（同一 GitHub 仓库自动部署）
    ↓ supabase-js（anon key，仅前端可公开密钥）
 Supabase
    ├── feedback 表      → 仅可插入（RLS），本人控制台查看
@@ -110,13 +110,27 @@ Supabase
 | 检查公开页面与数据库权限 | RLS 三表策略如上；上线后用匿名身份实测：可读 stats/comments、可插入、**不可读他人 feedback、不可直改计数** |
 | 传输安全 | GitHub Pages + Supabase 均强制 HTTPS |
 
-## 8. 部署方案（GitHub Pages）
+## 8. 部署方案（双平台：Cloudflare Pages 主站 + GitHub Pages 镜像）
 
+> 2026-09-17 修订：由 GitHub Pages 单平台改为双平台。理由——Cloudflare 国内访问更稳（V3.5 测试访客以国内师生为主，github.io 域名国内经常被干扰是最大风险）；内置 Web Analytics（免费、无 Cookie，直接服务用户测试）；Final 阶段 Workers 可代理 LLM API key（Chat 接 LLM 的现成拼图）。GitHub Pages 保留作镜像备份，两站同源同内容。
+
+### 8.1 共同前提
 1. GitHub 网页新建 **public** 仓库（建议名 `personal-homepage`），本地 `git remote add origin` + push `main`。
-2. 仓库根添加空文件 `.nojekyll`（跳过 Jekyll 处理，保护下划线目录与纯静态结构）。
-3. Settings → Pages → Source: **Deploy from a branch** → `main` / `/ (root)`。
-4. 站点地址：`https://leesirleesirlee-star.github.io/<repo>/`（资源均为相对路径，子路径部署无碍）。
-5. 发布后全站回归：双语 / 双主题 / 模态 / 移动菜单 / chat 视图 / **Feedback 真机提交全链路** + RLS 匿名权限实测。
+2. 仓库根添加空文件 `.nojekyll`（跳过 Jekyll 处理，保护纯静态结构；对 Cloudflare 无害）。
+
+### 8.2 Cloudflare Pages（主站）
+1. 注册/登录 [dash.cloudflare.com](https://dash.cloudflare.com) → 左侧 **Workers & Pages** → **Create** → **Pages** → **Connect to Git**。
+2. 授权 GitHub，选中 `personal-homepage` 仓库。
+3. 构建设置：Framework preset 选 **None**，Build command **留空**，Output directory 填 `/`（根目录）——纯静态无构建。
+4. **Save and Deploy**，此后每次 push `main` 自动部署。站点地址：`https://<project>.pages.dev`。
+5. 可选：左侧 **Web Analytics** 一键开启（隐私友好，无 Cookie 横幅负担），供 V3.5 观测访问量。
+
+### 8.3 GitHub Pages（镜像备份）
+1. 仓库 **Settings → Pages** → Source: **Deploy from a branch** → `main` / `/ (root)`。
+2. 站点地址：`https://leesirleesirlee-star.github.io/<repo>/`（资源均为相对路径，子路径部署无碍）。
+
+### 8.4 发布后验收（两站各过一遍）
+双语 / 双主题 / 模态 / 移动菜单 / chat 视图 / **Feedback 真机提交全链路** + RLS 匿名权限实测（可读 stats/comments、可插入、不可读他人 feedback、不可直改计数）。V3.5 发测试链接时优先发 Cloudflare 地址，GitHub 地址作备用。
 
 ## 9. 实施轮次（沿用 V2 迭代纪律 + PRD 第 9 节证据要求）
 
@@ -125,7 +139,7 @@ Supabase
 | **R1 地基** ✅ 本轮 | 本设计文档 + `v3-supabase-setup.sql` + Supabase 项目创建（本人操作，见聊天内指引） | 无 |
 | **R2 Feedback 前端** | 导航第 5 项 + #feedback 板块 + 表单状态机 + supabase-js 接入 + honeypot | R1 的 URL + anon key |
 | **R3 互动数据** | views/likes 激活 modal-stats + 留言 UI + 防刷 | R2 的客户端封装 |
-| **R4 部署** | GitHub 仓库 + Pages 发布 + .nojekyll + 全链路回归 | R3 完成 |
+| **R4 部署** | GitHub 仓库 + Cloudflare Pages（主站）+ GitHub Pages（镜像）+ .nojekyll + 双站全链路回归 | R3 完成 |
 | **R5 测试收尾** | ≥3 人真实测试（3–5 条 meaningful feedback）+ 反馈分类记录 + 证据截图 + 更新总进度档案 + tag `v3.0` | R4 上线 |
 
 每轮独立 commit（git checkpoint），证据记录于本文档 §10（逐轮回填）。
@@ -139,3 +153,4 @@ Supabase
 | 版本 | 日期 | 内容 |
 |---|---|---|
 | V3-Design-01 | 2026-09-17 | 收录 PRD V3 需求 + 本人 4 项决策；数据库/RLS/RPC 设计定稿；五轮实施计划 |
+| V3-Design-02 | 2026-09-17 | 部署平台修订：GitHub Pages 单平台 → **双平台部署**（Cloudflare Pages 主站 + GitHub Pages 镜像）；§2/§3/§8/§9 同步更新 |
