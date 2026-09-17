@@ -148,7 +148,8 @@ Supabase
 
 - **R1（2026-09-17）**：V3 决策拍板（范围/平台/Chat/Supabase）；产出 `docs/v3-design.md` + `docs/v3-supabase-setup.sql`；`.gitignore` 增加 `uploads/`、`.opencode/skills/`（防误发布）；V2.2（毛玻璃调优 + Chat 静态布局）先行 commit `38d362d`。
 - **R2（2026-09-17）**：Feedback 前端完成（`3b0ff81`）。supabase-js v2.116.0 本地化 `assets/vendor/`；导航第 5 项「反馈」+ `#feedback` 板块（内容必填 + 联系方式可选 + honeypot）；提交状态机三态（submitting/success 5s 淡出/error）双语；scroll spy 注册；anon key 硬编码 `main.js`（可公开密钥）。后端 curl 七项验证全过；浏览器真实提交验收通过（记录落库确认）。
-- **R4-进行中（2026-09-17）**：GitHub 仓库创建（`leesirleesirlee-star/Leesir-s-personal-homepage`）并完成首推（SSH）。推送前安全处置：① git 历史重写，从历史彻底移除 2 个个人 rtf（PRD/个人信息陈述）+ `.opencode/` 工具目录（26 commits 完整、v1.0/v2.0 tags 跟随重写；PRD 由 textutil 全文备份重建，个人陈述原件待本人从其他渠道恢复）；② 11 项敏感信息终审全绿（无私密凭据/手机号/身份证/本地路径/EXIF；anon key 与邮箱属设计公开）；③ `.gitignore` 加固（`.opencode/` 整目录 + 两个 rtf 永不入库）。剩余：Cloudflare Pages 主站配置 + GitHub Pages 开启 + 双站回归。
+- **R4-进行中（2026-09-17）**：GitHub 仓库创建（`leesirleesirlee-star/Leesir-s-personal-homepage`）并完成首推（SSH）。推送前安全处置：① git 历史重写，从历史彻底移除 2 个个人 rtf（PRD/个人信息陈述）+ `.opencode/` 工具目录（26 commits 完整、v1.0/v2.0 tags 跟随重写；PRD 由 textutil 全文备份重建，个人陈述原件待本人从其他渠道恢复）；② 11 项敏感信息终审全绿（无私密凭据/手机号/身份证/本地路径/EXIF；anon key 与邮箱属设计公开）；③ `.gitignore` 加固（`.opencode/` 整目录 + 两个 rtf 永不入库）。进展：**Cloudflare Pages 主站已上线**（本人操作完成，自动部署已关联 main 分支）；剩余：GitHub Pages 开启 + 双站回归。
+- **R2.5（2026-09-17）**：Feedback 增加「关系 + 设备」两字段（`b6e0209`）。关系下拉必选六枚举（同学/老师/朋友/家人/同事/其他，英文枚举值存储、界面双语）；设备下拉 UA 自动预选可改 + 提交自动采集 device_info（UA|屏幕|视口|触控|系统语言）。DB 迁移追加 setup.sql §8（无 dollar-quoting 幂等版，`246fb21` 修复聊天复制 `$$` 被渲染吞字问题）；验收：SQL Editor 实测新记录三列落库 ✅。
 
 ## 11. 版本记录
 
