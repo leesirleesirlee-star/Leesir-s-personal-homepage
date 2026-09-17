@@ -1462,3 +1462,104 @@ body[data-view="chat"] .nav-links {
     height: 42px;
   }
 }
+
+/* ============================================================
+   V3 R2 — Feedback 表单（玻璃质感，Supabase 直连）
+   ============================================================ */
+.feedback-form {
+  width: 100%;
+  margin-top: 36px;
+}
+
+.fb-field {
+  margin-bottom: 18px;
+}
+
+.fb-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.fb-textarea,
+.fb-input {
+  width: 100%;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  padding: 12px 16px;
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: var(--glass-shadow), var(--glass-highlight);
+  transition: border-color 0.25s ease;
+}
+
+.fb-textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.65;
+}
+
+.fb-textarea:focus,
+.fb-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.fb-textarea::placeholder,
+.fb-input::placeholder {
+  color: var(--text-secondary);
+}
+
+/* honeypot：视觉隐藏但保留 DOM（屏幕阅读器亦不读出） */
+.fb-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.fb-foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.fb-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.fb-status {
+  font-size: 14px;
+  margin: 0;
+  transition: opacity 0.4s ease;
+}
+
+.fb-status.pending {
+  color: var(--text-secondary);
+}
+
+.fb-status.success {
+  color: #1F9D4D;
+}
+
+.fb-status.error {
+  color: #C0392B;
+}
+
+[data-theme="dark"] .fb-status.success {
+  color: #34D17B;
+}
+
+[data-theme="dark"] .fb-status.error {
+  color: #FF7A72;
+}

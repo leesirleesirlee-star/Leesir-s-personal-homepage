@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Nick Lee 李泽毓 — Personal Homepage">
   <title>Nick Lee 李泽毓 · Personal Homepage</title>
-  <link rel="stylesheet" href="assets/css/styles.css?v=2.2.0">
+  <link rel="stylesheet" href="assets/css/styles.css?v=2.3.0">
 </head>
 <body data-view="info">
 
@@ -25,6 +25,7 @@
         <a href="#projects" data-i18n="nav.projects">项目</a>
         <a href="#learning" data-i18n="nav.learning">学习与兴趣</a>
         <a href="#contact" data-i18n="nav.contact">联系</a>
+        <a href="#feedback" data-i18n="nav.feedback">反馈</a>
       </div>
 
       <div class="nav-controls">
@@ -56,6 +57,7 @@
     <a href="#projects" data-i18n="nav.projects">项目</a>
     <a href="#learning" data-i18n="nav.learning">学习与兴趣</a>
     <a href="#contact" data-i18n="nav.contact">联系</a>
+    <a href="#feedback" data-i18n="nav.feedback">反馈</a>
   </div>
 
   <main id="view-info">
@@ -218,6 +220,36 @@
       </div>
     </section>
 
+    <!-- ============ Feedback (V3 R2) ============ -->
+    <section class="section" id="feedback">
+      <div class="container container-narrow">
+        <p class="section-eyebrow reveal" data-i18n="feedback.eyebrow">Feedback</p>
+        <h2 class="section-title reveal" data-i18n="feedback.title">留言反馈</h2>
+        <p class="section-lead reveal" data-i18n="feedback.lead">无论是内容、设计还是使用体验——你的每一条反馈，都会直接决定下一版的改进方向。</p>
+
+        <form class="feedback-form reveal" id="feedback-form" novalidate>
+          <div class="fb-field">
+            <label class="fb-label" for="fb-content" data-i18n="feedback.contentLabel">你的反馈</label>
+            <textarea class="fb-textarea" id="fb-content" rows="5" maxlength="2000" required
+              placeholder="对内容、结构、设计或任何想法的建议……" data-i18n-ph="feedback.contentPh"></textarea>
+          </div>
+          <div class="fb-field">
+            <label class="fb-label" for="fb-contact" data-i18n="feedback.contactLabel">联系方式（可选）</label>
+            <input class="fb-input" id="fb-contact" type="text" maxlength="200"
+              placeholder="邮箱或其他，方便我回复；可不填" data-i18n-ph="feedback.contactPh">
+          </div>
+          <!-- honeypot：真人不可见，机器人填写则静默拦截 -->
+          <input type="text" id="fb-company" class="fb-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <div class="fb-foot">
+            <button class="btn btn-primary fb-submit" id="fb-submit" type="submit">
+              <span data-i18n="feedback.submit">提交反馈</span>
+            </button>
+            <p class="fb-status" id="fb-status" role="status" aria-live="polite"></p>
+          </div>
+        </form>
+      </div>
+    </section>
+
   </main>
 
   <!-- ============ Chat View（V2.2 静态布局预览，对话能力 V3 接入） ============ -->
@@ -311,6 +343,7 @@
     </svg>
   </button>
 
-  <script src="assets/js/main.js?v=2.2.0"></script>
+  <script src="assets/vendor/supabase-js.js"></script>
+  <script src="assets/js/main.js?v=2.3.0"></script>
 </body>
 </html>

@@ -14,6 +14,7 @@
       "nav.projects": "项目",
       "nav.learning": "学习与兴趣",
       "nav.contact": "联系",
+      "nav.feedback": "反馈",
 
       "hero.eyebrow": "Nick Lee",
       "hero.name": "李泽毓",
@@ -95,6 +96,19 @@
       "contact.lead": "欢迎交流学习、科研合作或任何想法。",
       "contact.email": "邮箱",
 
+      "feedback.eyebrow": "Feedback",
+      "feedback.title": "留言反馈",
+      "feedback.lead": "无论是内容、设计还是使用体验——你的每一条反馈，都会直接决定下一版的改进方向。",
+      "feedback.contentLabel": "你的反馈",
+      "feedback.contentPh": "对内容、结构、设计或任何想法的建议……",
+      "feedback.contactLabel": "联系方式（可选）",
+      "feedback.contactPh": "邮箱或其他，方便我回复；可不填",
+      "feedback.submit": "提交反馈",
+      "feedback.submitting": "提交中……",
+      "feedback.success": "✓ 提交成功！感谢你的反馈，它会直接参与下一版的改进决策。",
+      "feedback.error": "提交失败，请检查网络后重试。",
+      "feedback.empty": "请先填写反馈内容。",
+
       "footer.text": "© 2026 Nick Lee · V2.0"
     },
 
@@ -103,6 +117,7 @@
       "nav.projects": "Projects",
       "nav.learning": "Learning",
       "nav.contact": "Contact",
+      "nav.feedback": "Feedback",
 
       "hero.eyebrow": "Li Zeyu",
       "hero.name": "Nick Lee",
@@ -183,6 +198,19 @@
       "contact.title": "Get in Touch",
       "contact.lead": "Feel free to reach out for academic exchange, research collaboration, or any ideas.",
       "contact.email": "Email",
+
+      "feedback.eyebrow": "Feedback",
+      "feedback.title": "Leave Feedback",
+      "feedback.lead": "Content, design, usability — every piece of feedback directly shapes the next version.",
+      "feedback.contentLabel": "Your feedback",
+      "feedback.contentPh": "Suggestions on content, structure, design, or anything else…",
+      "feedback.contactLabel": "Contact (optional)",
+      "feedback.contactPh": "Email or anything — only if you'd like a reply.",
+      "feedback.submit": "Send Feedback",
+      "feedback.submitting": "Sending…",
+      "feedback.success": "✓ Thank you! Your feedback was submitted and will shape the next version.",
+      "feedback.error": "Submission failed — please check your connection and try again.",
+      "feedback.empty": "Please write your feedback first.",
 
       "footer.text": "© 2026 Nick Lee · V2.0"
     }
@@ -295,6 +323,15 @@
       }
     }
   };
+
+  /* ---------- 1b. Supabase 客户端（V3） ----------
+     anon key 为 Supabase 可公开密钥，安全由 RLS 策略保证；service key 永不入库 */
+  var SUPABASE_URL = "https://hblrhrhwmnlpvpadvgmq.supabase.co";
+  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhibHJocmh3bW5scHZwYWR2Z21xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2Mjc4NTUsImV4cCI6MjEwNTIwMzg1NX0.tBGCHkTJN_EoiycwZf36ARirJSKK8xvJXYSlQISe1tM";
+  var supabaseClient = null;
+  if (window.supabase && typeof window.supabase.createClient === "function") {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
 
   /* ---------- 2. 语言切换 ---------- */
   var htmlEl = document.documentElement;
@@ -423,7 +460,8 @@
       { id: "about", el: document.getElementById("about") },
       { id: "projects", el: document.getElementById("projects") },
       { id: "learning", el: document.getElementById("learning") },
-      { id: "contact", el: document.getElementById("contact") }
+      { id: "contact", el: document.getElementById("contact") },
+      { id: "feedback", el: document.getElementById("feedback") }
     ];
     function clearActive() {
       for (var a = 0; a < links.length; a++) links[a].classList.remove("active");
@@ -679,6 +717,68 @@
     }
   }
 
+  /* ---------- 5g. Feedback 表单（V3 R2：Supabase 直连，免登录） ---------- */
+  function initFeedback() {
+    var form = document.getElementById("feedback-form");
+    if (!form) return;
+    var contentEl = document.getElementById("fb-content");
+    var contactEl = document.getElementById("fb-contact");
+    var hpEl = document.getElementById("fb-company");
+    var submitBtn = document.getElementById("fb-submit");
+    var submitLabel = submitBtn.querySelector("span");
+    var statusEl = document.getElementById("fb-status");
+    var fadeTimer = null;
+
+    function dict() {
+      return i18n[htmlEl.getAttribute("lang") === "en" ? "en" : "zh"] || i18n.zh;
+    }
+    function setStatus(type, text) {
+      if (fadeTimer) { clearTimeout(fadeTimer); fadeTimer = null; }
+      statusEl.className = "fb-status" + (type ? " " + type : "");
+      statusEl.style.opacity = "1";
+      statusEl.textContent = text || "";
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      /* honeypot：机器人填写则静默丢弃（不暴露拦截行为） */
+      if (hpEl.value) { form.reset(); return; }
+      var d = dict();
+      var content = contentEl.value.trim();
+      if (!content) { setStatus("error", d["feedback.empty"]); return; }
+      if (!supabaseClient) { setStatus("error", d["feedback.error"]); return; }
+
+      submitBtn.disabled = true;
+      submitLabel.textContent = d["feedback.submitting"];
+      setStatus("pending", d["feedback.submitting"]);
+
+      function restore() {
+        submitBtn.disabled = false;
+        submitLabel.textContent = d["feedback.submit"];
+      }
+      supabaseClient
+        .from("feedback")
+        .insert({
+          content: content,
+          contact: contactEl.value.trim() || null,
+          lang: htmlEl.getAttribute("lang") === "en" ? "en" : "zh",
+          page: "home"
+        })
+        .then(function (res) {
+          restore();
+          if (res.error) { setStatus("error", d["feedback.error"]); return; }
+          setStatus("success", d["feedback.success"]);
+          form.reset();
+          fadeTimer = setTimeout(function () {
+            statusEl.style.opacity = "0";
+          }, 5000);
+        }, function () {
+          restore();
+          setStatus("error", d["feedback.error"]);
+        });
+    });
+  }
+
   /* ---------- 6. 初始化 ---------- */
   applyTheme(detectTheme());
   applyLang(detectLang());
@@ -689,4 +789,5 @@
   initViewSwitch();
   initBackToTop();
   initChat();
+  initFeedback();
 })();
