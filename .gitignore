@@ -1,5 +1,11 @@
 # DeepWorks 临时文件（预览日志等）
 .deepworks/tmp/
 
+# DeepWorks 工具目录（不属于本项目，不发布到 GitHub Pages）
+.opencode/skills/
+
+# DeepWorks 会话上传目录
+uploads/
+
 # macOS
 .DS_Store

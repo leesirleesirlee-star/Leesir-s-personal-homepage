@@ -78,9 +78,17 @@
       "learning.i5.desc": "热爱影像记录与光影表达，后期将上传个人作品，制作线上画展。",
       "view.info": "信息",
       "view.chat": "Chat",
-      "view.chat.title": "Chat",
-      "view.chat.desc": "对话功能将在 V3 版本上线，届时可在此与我直接交流。",
-      "view.chat.badge": "V3 敬请期待",
+      "chat.greeting": "你好！我是 Nick 的数字分身。关于我的学业、科研与项目，想了解的都可以问我。",
+      "chat.q1": "Nick 最近在学什么？",
+      "chat.a1": "我在夯实计算机与数学的专业基础，同时探索 AI for Science——把机器学习与仿真方法用于真实科学问题（比如 Digital Resin）；课外参与学生工作，也保持着摄影这项长期爱好。",
+      "chat.q2": "能介绍一下 Digital Resin 项目吗？",
+      "chat.a2": "当然。Digital Resin 是我的科研项目：为离子交换树脂构建数字孪生模型，用计算机模拟吸附过程，辅助树脂筛选与工艺优化。目前已完成分子建模、结合能计算与一维扩散-吸附模拟，处于 MVP 阶段。完整进展可以在信息页的「项目」板块查看。",
+      "chat.chipsLabel": "你还可以问",
+      "chat.chip1": "如何联系 Nick？",
+      "chat.chip2": "Nick 的长期目标是什么？",
+      "chat.chip3": "Nick 有哪些兴趣爱好？",
+      "chat.placeholder": "向 Nick 提问……",
+      "chat.note": "静态布局预览 · 对话功能将在 V3 上线后激活",
 
       "contact.eyebrow": "Contact",
       "contact.title": "联系我",
@@ -159,9 +167,17 @@
       "learning.i5.desc": "Passionate about visual storytelling and light — personal works and an online gallery coming soon.",
       "view.info": "Info",
       "view.chat": "Chat",
-      "view.chat.title": "Chat",
-      "view.chat.desc": "Chat arrives in V3 — a place to talk with me directly. Stay tuned.",
-      "view.chat.badge": "Coming in V3",
+      "chat.greeting": "Hi! I'm Nick's digital twin. Ask me anything about my studies, research, or projects.",
+      "chat.q1": "What is Nick currently learning?",
+      "chat.a1": "I'm strengthening my CS and math foundations while exploring AI for Science — applying machine learning and simulation to real scientific problems (like Digital Resin). Beyond class, I serve in student leadership and keep photography as a long-term hobby.",
+      "chat.q2": "Tell me about Digital Resin.",
+      "chat.a2": "Sure. Digital Resin is my research project: a digital twin for ion-exchange resins that simulates adsorption in silico, supporting resin screening and process optimization. Molecular modeling, binding-energy computation, and 1D diffusion–adsorption simulation are complete — it's at MVP stage. Full details are in the Projects section on the Info page.",
+      "chat.chipsLabel": "You can also ask",
+      "chat.chip1": "How can I reach Nick?",
+      "chat.chip2": "What are Nick's long-term goals?",
+      "chat.chip3": "What are Nick's hobbies?",
+      "chat.placeholder": "Ask Nick anything…",
+      "chat.note": "Static layout preview · Chat goes live in V3",
 
       "contact.eyebrow": "Contact",
       "contact.title": "Get in Touch",
@@ -299,6 +315,12 @@
     for (var i = 0; i < nodes.length; i++) {
       var key = nodes[i].getAttribute("data-i18n");
       if (dict[key]) nodes[i].textContent = dict[key];
+    }
+    /* placeholder 类属性走 data-i18n-ph（textContent 之外的文案） */
+    var phNodes = document.querySelectorAll("[data-i18n-ph]");
+    for (var p = 0; p < phNodes.length; p++) {
+      var phKey = phNodes[p].getAttribute("data-i18n-ph");
+      if (dict[phKey]) phNodes[p].setAttribute("placeholder", dict[phKey]);
     }
     htmlEl.setAttribute("lang", lang === "zh" ? "zh-CN" : "en");
     document.title = lang === "zh"
@@ -643,6 +665,20 @@
     });
   }
 
+  /* ---------- 5f. Chat 静态预览：建议追问 chips 点击填充输入框 ---------- */
+  function initChat() {
+    var input = document.getElementById("chat-input");
+    if (!input) return;
+    var chips = document.querySelectorAll(".chat-chip");
+    for (var i = 0; i < chips.length; i++) {
+      chips[i].addEventListener("click", function () {
+        /* textContent 已被 applyLang 本地化为当前语言 */
+        input.value = this.textContent;
+        input.focus();
+      });
+    }
+  }
+
   /* ---------- 6. 初始化 ---------- */
   applyTheme(detectTheme());
   applyLang(detectLang());
@@ -652,4 +688,5 @@
   initExpand();
   initViewSwitch();
   initBackToTop();
+  initChat();
 })();
