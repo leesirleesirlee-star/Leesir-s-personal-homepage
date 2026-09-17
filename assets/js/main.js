@@ -103,6 +103,21 @@
       "feedback.contentPh": "对内容、结构、设计或任何想法的建议……",
       "feedback.contactLabel": "联系方式（可选）",
       "feedback.contactPh": "邮箱或其他，方便我回复；可不填",
+      "feedback.relLabel": "你与我的关系",
+      "feedback.relPlaceholder": "请选择",
+      "feedback.relClassmate": "同学",
+      "feedback.relTeacher": "老师",
+      "feedback.relFriend": "朋友",
+      "feedback.relFamily": "家人",
+      "feedback.relColleague": "同事",
+      "feedback.relOther": "其他",
+      "feedback.relRequired": "请选择你与我的关系。",
+      "feedback.deviceLabel": "你浏览所用的设备",
+      "feedback.deviceMobile": "手机",
+      "feedback.deviceTablet": "平板",
+      "feedback.deviceDesktop": "电脑",
+      "feedback.deviceOther": "其他",
+      "feedback.deviceHint": "已按当前浏览器自动预选，可手动修正；设备问题修复以此为据",
       "feedback.submit": "提交反馈",
       "feedback.submitting": "提交中……",
       "feedback.success": "✓ 提交成功！感谢你的反馈，它会直接参与下一版的改进决策。",
@@ -206,6 +221,21 @@
       "feedback.contentPh": "Suggestions on content, structure, design, or anything else…",
       "feedback.contactLabel": "Contact (optional)",
       "feedback.contactPh": "Email or anything — only if you'd like a reply.",
+      "feedback.relLabel": "Your relationship with me",
+      "feedback.relPlaceholder": "Select…",
+      "feedback.relClassmate": "Classmate",
+      "feedback.relTeacher": "Teacher",
+      "feedback.relFriend": "Friend",
+      "feedback.relFamily": "Family",
+      "feedback.relColleague": "Colleague",
+      "feedback.relOther": "Other",
+      "feedback.relRequired": "Please select your relationship with me.",
+      "feedback.deviceLabel": "Device you're browsing on",
+      "feedback.deviceMobile": "Phone",
+      "feedback.deviceTablet": "Tablet",
+      "feedback.deviceDesktop": "Computer",
+      "feedback.deviceOther": "Other",
+      "feedback.deviceHint": "Auto-detected from your browser — correct it if wrong; device-specific fixes rely on this",
       "feedback.submit": "Send Feedback",
       "feedback.submitting": "Sending…",
       "feedback.success": "✓ Thank you! Your feedback was submitted and will shape the next version.",
@@ -723,11 +753,31 @@
     if (!form) return;
     var contentEl = document.getElementById("fb-content");
     var contactEl = document.getElementById("fb-contact");
+    var relEl = document.getElementById("fb-relationship");
+    var deviceEl = document.getElementById("fb-device");
     var hpEl = document.getElementById("fb-company");
     var submitBtn = document.getElementById("fb-submit");
     var submitLabel = submitBtn.querySelector("span");
     var statusEl = document.getElementById("fb-status");
     var fadeTimer = null;
+
+    /* R2.5：按 UA 自动预选设备大类（用户可改）；提交时另采集完整技术细节 */
+    function detectDeviceType() {
+      var ua = navigator.userAgent;
+      if (/iPad|Tablet|PlayBook|Silk/i.test(ua) || (/Android/i.test(ua) && !/Mobile/i.test(ua))) return "tablet";
+      if (/Mobile|iPhone|iPod|Windows Phone/i.test(ua)) return "mobile";
+      return "desktop";
+    }
+    function collectDeviceInfo() {
+      return [
+        navigator.userAgent,
+        "screen:" + (window.screen ? window.screen.width + "x" + window.screen.height : "?"),
+        "viewport:" + window.innerWidth + "x" + window.innerHeight,
+        "touch:" + (("ontouchstart" in window) ? "yes" : "no"),
+        "osLang:" + navigator.language
+      ].join(" | ").slice(0, 500);
+    }
+    deviceEl.value = detectDeviceType();
 
     function dict() {
       return i18n[htmlEl.getAttribute("lang") === "en" ? "en" : "zh"] || i18n.zh;
@@ -742,8 +792,9 @@
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       /* honeypot：机器人填写则静默丢弃（不暴露拦截行为） */
-      if (hpEl.value) { form.reset(); return; }
+      if (hpEl.value) { form.reset(); deviceEl.value = detectDeviceType(); return; }
       var d = dict();
+      if (!relEl.value) { setStatus("error", d["feedback.relRequired"]); relEl.focus(); return; }
       var content = contentEl.value.trim();
       if (!content) { setStatus("error", d["feedback.empty"]); return; }
       if (!supabaseClient) { setStatus("error", d["feedback.error"]); return; }
@@ -761,6 +812,9 @@
         .insert({
           content: content,
           contact: contactEl.value.trim() || null,
+          relationship: relEl.value,
+          device_type: deviceEl.value || detectDeviceType(),
+          device_info: collectDeviceInfo(),
           lang: htmlEl.getAttribute("lang") === "en" ? "en" : "zh",
           page: "home"
         })
@@ -769,6 +823,7 @@
           if (res.error) { setStatus("error", d["feedback.error"]); return; }
           setStatus("success", d["feedback.success"]);
           form.reset();
+          deviceEl.value = detectDeviceType();
           fadeTimer = setTimeout(function () {
             statusEl.style.opacity = "0";
           }, 5000);

@@ -110,3 +110,26 @@ grant execute on function increment_likes(text) to anon;
 -- ③ Database → Policies 应看到 4 条策略（每表图标为 RLS 开启）
 -- ④ SQL 自测：select increment_views('resin'); 应返回 1（再跑 v3-supabase-setup.sql 可重复初始化，计数不会被清零）
 -- ============================================================
+
+-- ============================================================
+-- 8. R2.5 迁移（2026-09-17 追加）：feedback 增加 关系 + 设备 三列
+--    幂等可重复执行；存量行的新列为 NULL（check 约束对 NULL 放行，不破坏旧数据）
+-- ============================================================
+alter table public.feedback
+  add column if not exists relationship text,
+  add column if not exists device_type  text,
+  add column if not exists device_info  text;
+
+comment on column public.feedback.relationship is '反馈人与本人的关系（必填枚举）';
+comment on column public.feedback.device_type  is '浏览设备大类（必填枚举，前端自动识别预选、用户可改）';
+comment on column public.feedback.device_info  is '设备技术细节（自动采集：UA | 屏幕 | 视口 | 触控），供问题定位';
+
+do $$ begin
+  alter table public.feedback add constraint feedback_relationship_check
+    check (relationship in ('classmate','teacher','friend','family','colleague','other'));
+exception when duplicate_object then null; end $$;
+
+do $$ begin
+  alter table public.feedback add constraint feedback_device_type_check
+    check (device_type in ('mobile','tablet','desktop','other'));
+exception when duplicate_object then null; end $$;

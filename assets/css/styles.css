@@ -1563,3 +1563,49 @@ body[data-view="chat"] .nav-links {
 [data-theme="dark"] .fb-status.error {
   color: #FF7A72;
 }
+
+
+/* ---------- V3 R2.5: Feedback 关系 + 设备 字段 ---------- */
+.fb-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.fb-select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  padding-right: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237A7A85' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 14px;
+}
+
+.fb-select:invalid {
+  color: var(--text-secondary);
+}
+
+.fb-select option {
+  color: var(--text);
+  background: var(--bg-elevated);
+}
+
+[data-theme="dark"] .fb-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238E8E99' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+}
+
+.fb-hint {
+  margin: 6px 2px 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .fb-row {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
