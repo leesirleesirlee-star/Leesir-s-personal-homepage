@@ -2,10 +2,14 @@
 .deepworks/tmp/
 
 # DeepWorks 工具目录（不属于本项目，不发布到 GitHub Pages）
-.opencode/skills/
+.opencode/
 
 # DeepWorks 会话上传目录
 uploads/
+
+# 个人敏感材料（仅本地留存，永不入库）
+个人信息陈述.rtf
+Personal Homepage Project 个人主页项目需求书（PRD）.rtf
 
 # macOS
 .DS_Store
