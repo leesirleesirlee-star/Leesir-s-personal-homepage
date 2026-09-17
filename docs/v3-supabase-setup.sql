@@ -124,12 +124,11 @@ comment on column public.feedback.relationship is '反馈人与本人的关系�
 comment on column public.feedback.device_type  is '浏览设备大类（必填枚举，前端自动识别预选、用户可改）';
 comment on column public.feedback.device_info  is '设备技术细节（自动采集：UA | 屏幕 | 视口 | 触控），供问题定位';
 
-do $$ begin
-  alter table public.feedback add constraint feedback_relationship_check
-    check (relationship in ('classmate','teacher','friend','family','colleague','other'));
-exception when duplicate_object then null; end $$;
+-- 枚举约束（先 drop 再 add，幂等且无需 dollar-quoting，聊天复制安全）
+alter table public.feedback drop constraint if exists feedback_relationship_check;
+alter table public.feedback add constraint feedback_relationship_check
+  check (relationship in ('classmate','teacher','friend','family','colleague','other'));
 
-do $$ begin
-  alter table public.feedback add constraint feedback_device_type_check
-    check (device_type in ('mobile','tablet','desktop','other'));
-exception when duplicate_object then null; end $$;
+alter table public.feedback drop constraint if exists feedback_device_type_check;
+alter table public.feedback add constraint feedback_device_type_check
+  check (device_type in ('mobile','tablet','desktop','other'));
