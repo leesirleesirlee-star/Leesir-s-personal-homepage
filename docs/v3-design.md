@@ -137,9 +137,9 @@ Supabase
 | 轮次 | 内容 | 依赖 |
 |---|---|---|
 | **R1 地基** ✅ 本轮 | 本设计文档 + `v3-supabase-setup.sql` + Supabase 项目创建（本人操作，见聊天内指引） | 无 |
-| **R2 Feedback 前端** | 导航第 5 项 + #feedback 板块 + 表单状态机 + supabase-js 接入 + honeypot | R1 的 URL + anon key |
+| **R2 Feedback 前端** ✅ 2026-09-17 | 导航第 5 项 + #feedback 板块 + 表单状态机 + supabase-js 接入 + honeypot | R1 的 URL + anon key |
 | **R3 互动数据** | views/likes 激活 modal-stats + 留言 UI + 防刷 | R2 的客户端封装 |
-| **R4 部署** | GitHub 仓库 + Cloudflare Pages（主站）+ GitHub Pages（镜像）+ .nojekyll + 双站全链路回归 | R3 完成 |
+| **R4 部署**（进行中） | GitHub 仓库 + Cloudflare Pages（主站）+ GitHub Pages（镜像）+ .nojekyll + 双站全链路回归 | R3 完成 |
 | **R5 测试收尾** | ≥3 人真实测试（3–5 条 meaningful feedback）+ 反馈分类记录 + 证据截图 + 更新总进度档案 + tag `v3.0` | R4 上线 |
 
 每轮独立 commit（git checkpoint），证据记录于本文档 §10（逐轮回填）。
@@ -147,6 +147,8 @@ Supabase
 ## 10. V3 实现记录（逐轮回填）
 
 - **R1（2026-09-17）**：V3 决策拍板（范围/平台/Chat/Supabase）；产出 `docs/v3-design.md` + `docs/v3-supabase-setup.sql`；`.gitignore` 增加 `uploads/`、`.opencode/skills/`（防误发布）；V2.2（毛玻璃调优 + Chat 静态布局）先行 commit `38d362d`。
+- **R2（2026-09-17）**：Feedback 前端完成（`3b0ff81`）。supabase-js v2.116.0 本地化 `assets/vendor/`；导航第 5 项「反馈」+ `#feedback` 板块（内容必填 + 联系方式可选 + honeypot）；提交状态机三态（submitting/success 5s 淡出/error）双语；scroll spy 注册；anon key 硬编码 `main.js`（可公开密钥）。后端 curl 七项验证全过；浏览器真实提交验收通过（记录落库确认）。
+- **R4-进行中（2026-09-17）**：GitHub 仓库创建（`leesirleesirlee-star/Leesir-s-personal-homepage`）并完成首推（SSH）。推送前安全处置：① git 历史重写，从历史彻底移除 2 个个人 rtf（PRD/个人信息陈述）+ `.opencode/` 工具目录（26 commits 完整、v1.0/v2.0 tags 跟随重写；PRD 由 textutil 全文备份重建，个人陈述原件待本人从其他渠道恢复）；② 11 项敏感信息终审全绿（无私密凭据/手机号/身份证/本地路径/EXIF；anon key 与邮箱属设计公开）；③ `.gitignore` 加固（`.opencode/` 整目录 + 两个 rtf 永不入库）。剩余：Cloudflare Pages 主站配置 + GitHub Pages 开启 + 双站回归。
 
 ## 11. 版本记录
 
@@ -154,3 +156,4 @@ Supabase
 |---|---|---|
 | V3-Design-01 | 2026-09-17 | 收录 PRD V3 需求 + 本人 4 项决策；数据库/RLS/RPC 设计定稿；五轮实施计划 |
 | V3-Design-02 | 2026-09-17 | 部署平台修订：GitHub Pages 单平台 → **双平台部署**（Cloudflare Pages 主站 + GitHub Pages 镜像）；§2/§3/§8/§9 同步更新 |
+| V3-Design-03 | 2026-09-17 | §9/§10 回填：R2 完成验收；R4 启动（GitHub 首推 + 历史清理 + 敏感信息终审） |
