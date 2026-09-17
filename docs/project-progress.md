@@ -165,3 +165,35 @@
 - `docs/project-progress.md` — **本文件，承担"总进度"职能，以后恢复任务优先读这里**。
 - `docs/v2-progress.md` — V2 发起时的交接文档（**已过时**，仅存档，勿作为依据；真正的状态以本文件 + v2-design.md 为准）。
 - `docs/digital-resin.md` — Digital Resin 项目素材（V2 详情数据来源）。
+- `docs/v3-design.md` — **V3 设计 + 实现证据记录（当前有效主文档）**，含 §9 五轮计划、§10 逐轮回填。
+- `docs/v3-supabase-setup.sql` — Supabase 一键初始化（幂等）+ §8 R2.5 迁移段。
+
+---
+
+## 12. V3 阶段（公开部署 + Feedback + 互动数据）— 进行中
+
+**目标（PRD V3）**：公开可访问链接 + Supabase 免登录 Feedback（明确成功提示）+ 项目浏览量/喜爱量/留言 + ≥3 人真实测试 + tag `v3.0`。
+
+**线上双站（2026-09-17 上线）**：
+- 主站：https://leesir-s-personal-homepage.pages.dev/ （Cloudflare Pages，main 分支自动部署）
+- 镜像：https://leesirleesirlee-star.github.io/Leesir-s-personal-homepage/ （GitHub Pages）
+- 仓库：https://github.com/leesirleesirlee-star/Leesir-s-personal-homepage （public，SSH 推送，每次 commit 后自动 push）
+
+**Supabase**：项目 `hblrhrhwmnlpvpadvgmq`；三表（feedback/project_stats/comments）+ 两 RPC；anon key 硬编码 `main.js`（设计公开，RLS 防护已实测）；setup.sql 幂等可重跑。
+
+**轮次状态**：
+| 轮次 | 状态 |
+|---|---|
+| R1 地基（设计文档 + SQL + Supabase 建库） | ✅ 2026-09-17 |
+| R2 Feedback 前端（导航第5项 + 表单 + supabase-js 本地化） | ✅ 2026-09-17（真实提交验收通过） |
+| R2.5 关系+设备字段（关系必选枚举 / 设备自动预选 + device_info 采集） | ✅ 2026-09-17（三列落库实测） |
+| R4 双平台部署（含 git 历史清理 + 11 项敏感终审） | ✅ 2026-09-17（双站回归全绿） |
+| **R3 互动数据**（views/likes 激活 modal `—` 占位 + 项目留言区 UI） | ⬜ 下次开工 |
+| R5 测试收尾（≥3 人测试 + 反馈分类 + 证据 + tag `v3.0`） | ⬜ R3 之后 |
+
+**V3 新增工具与流程教训**：
+5. **历史重写/批量删除前必须先备份工作区文件**：`git filter-branch` 收尾 checkout 会删除"曾跟踪但已移除"的文件（`个人信息陈述.rtf` 因此丢失且不可恢复——本人需从其他渠道找回原件放回根目录，.gitignore 已豁免；PRD.rtf 已由 textutil 备份重建）。
+6. **聊天里贴 SQL 避免 `$$`**（dollar-quoting 会被 Markdown 渲染吞字）：用 `drop constraint if exists` + `add constraint` 等价幂等写法。
+7. **CSS 变量引用必须验证已定义**：本项目设计系统无 `--space-*/--text-xs/--leading-normal/--text-muted` 等变量，间距字号用具体值，文字色只有 `--text` / `--text-secondary`。
+8. **本机代理会间歇性阻断 curl 到 Supabase**（fake-IP 198.18.x.x）：验证 API 失败时先分辨是服务端还是本地代理问题；浏览器链路通常正常。
+9. **Supabase 验证插入用"不返回行"模式**：带 `Prefer: return=representation` 会触发 SELECT 权限检查被 RLS 拦（401 属预期，恰证明防读策略生效）。
