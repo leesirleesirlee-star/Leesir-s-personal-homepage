@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://leesir-s-personal-homepage.pages.dev/sitemap.xml

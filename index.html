@@ -2,10 +2,47 @@
 <html lang="zh-CN" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Nick Lee 李泽毓 — Personal Homepage">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Nick Lee 李泽毓的个人主页——计算机科学学生，探索 AI、数学与金融。欢迎查看项目、科研进展与联系方式。">
   <title>Nick Lee 李泽毓 · Personal Homepage</title>
-  <link rel="stylesheet" href="assets/css/styles.css?v=2.4.0">
+
+  <!-- 主题预置（V4）：在样式渲染前确定主题，避免深色偏好用户先看到白屏闪烁 -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("nick-homepage-theme");
+        if (t !== "light" && t !== "dark") {
+          t = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    })();
+  </script>
+
+  <link rel="stylesheet" href="assets/css/styles.css?v=4.1.0">
+
+  <!-- App 化基础（V4）：favicon / 主屏图标 / 安装清单 / 主题色 -->
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#FAF9F6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0F141B" media="(prefers-color-scheme: dark)">
+
+  <!-- 分享卡（V4）：微信 / LinkedIn / X 转发时的缩略图与摘要 -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Nick Lee · Personal Homepage">
+  <meta property="og:title" content="Nick Lee 李泽毓 · Personal Homepage">
+  <meta property="og:description" content="计算机科学学生 · 探索 AI、数学与金融">
+  <meta property="og:url" content="https://leesir-s-personal-homepage.pages.dev/">
+  <meta property="og:image" content="https://leesir-s-personal-homepage.pages.dev/assets/img/og-cover.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Nick Lee 李泽毓 · Personal Homepage">
+  <meta name="twitter:description" content="计算机科学学生 · 探索 AI、数学与金融">
+  <meta name="twitter:image" content="https://leesir-s-personal-homepage.pages.dev/assets/img/og-cover.jpg">
 </head>
 <body data-view="info">
 
@@ -16,7 +53,7 @@
         <a href="#hero" class="nav-logo">Nick Lee</a>
         <div class="view-switch" role="tablist" aria-label="View switch">
           <button class="view-switch-btn active" type="button" role="tab" data-view-target="info"><span data-i18n="view.info">信息</span></button>
-          <button class="view-switch-btn" type="button" role="tab" data-view-target="chat"><span data-i18n="view.chat">Chat</span></button>
+          <button class="view-switch-btn" type="button" role="tab" data-view-target="chat"><span data-i18n="view.chat">聊天</span></button>
         </div>
       </div>
 
@@ -51,7 +88,7 @@
   <div class="mobile-menu" id="mobile-menu" aria-hidden="true">
     <div class="view-switch mobile-view-switch" role="tablist" aria-label="View switch">
       <button class="view-switch-btn active" type="button" role="tab" data-view-target="info"><span data-i18n="view.info">信息</span></button>
-      <button class="view-switch-btn" type="button" role="tab" data-view-target="chat"><span data-i18n="view.chat">Chat</span></button>
+      <button class="view-switch-btn" type="button" role="tab" data-view-target="chat"><span data-i18n="view.chat">聊天</span></button>
     </div>
     <a href="#about" data-i18n="nav.about">关于</a>
     <a href="#projects" data-i18n="nav.projects">项目</a>
@@ -166,6 +203,14 @@
             </div>
           </div>
         </div>
+
+        <!-- ============ Project Timeline（V4.1）：项目进程总览 ============ -->
+        <div class="timeline-block">
+          <p class="section-eyebrow reveal" data-i18n="timeline.eyebrow">Roadmap</p>
+          <h3 class="timeline-title reveal" id="timeline-title" data-i18n="timeline.title">项目进程</h3>
+          <p class="timeline-lead reveal" data-i18n="timeline.lead">从分子建模到 MVP：Digital Resin 的推进路径与下一步计划。</p>
+          <ol class="timeline" id="timeline" aria-labelledby="timeline-title"><!-- rendered by JS --></ol>
+        </div>
       </div>
     </section>
 
@@ -231,14 +276,13 @@
           <div class="fb-row">
             <div class="fb-field">
               <label class="fb-label" for="fb-relationship" data-i18n="feedback.relLabel">你与我的关系</label>
-              <select class="fb-input fb-select" id="fb-relationship" required>
-                <option value="" disabled selected data-i18n="feedback.relPlaceholder">请选择</option>
+              <select class="fb-input fb-select" id="fb-relationship">
                 <option value="classmate" data-i18n="feedback.relClassmate">同学</option>
                 <option value="teacher" data-i18n="feedback.relTeacher">老师</option>
                 <option value="friend" data-i18n="feedback.relFriend">朋友</option>
                 <option value="family" data-i18n="feedback.relFamily">家人</option>
                 <option value="colleague" data-i18n="feedback.relColleague">同事</option>
-                <option value="other" data-i18n="feedback.relOther">其他</option>
+                <option value="other" selected data-i18n="feedback.relOther">其他</option>
               </select>
             </div>
             <div class="fb-field">
@@ -254,12 +298,13 @@
           </div>
           <div class="fb-field">
             <label class="fb-label" for="fb-content" data-i18n="feedback.contentLabel">你的反馈</label>
-            <textarea class="fb-textarea" id="fb-content" rows="5" maxlength="2000" required
+            <textarea class="fb-textarea" id="fb-content" rows="5" maxlength="2000" minlength="6" required
               placeholder="对内容、结构、设计或任何想法的建议……" data-i18n-ph="feedback.contentPh"></textarea>
+            <p class="fb-hint" data-i18n="feedback.contentHint">至少写 6 个字，让建议更具体、更可执行</p>
           </div>
           <div class="fb-field">
             <label class="fb-label" for="fb-contact" data-i18n="feedback.contactLabel">联系方式（可选）</label>
-            <input class="fb-input" id="fb-contact" type="text" maxlength="200"
+            <input class="fb-input" id="fb-contact" type="text" maxlength="200" autocomplete="email"
               placeholder="邮箱或其他，方便我回复；可不填" data-i18n-ph="feedback.contactPh">
           </div>
           <!-- honeypot：真人不可见，机器人填写则静默拦截 -->
@@ -276,7 +321,7 @@
 
   </main>
 
-  <!-- ============ Chat View（V2.2 静态布局预览，对话能力 V3 接入） ============ -->
+  <!-- ============ Chat View（静态布局预览；对话能力属 Final Extension 规划） ============ -->
   <main id="view-chat">
     <div class="chat-shell">
       <div class="chat-scroll" id="chat-scroll">
@@ -284,7 +329,7 @@
 
           <div class="chat-msg chat-msg--ai reveal">
             <span class="chat-avatar" aria-hidden="true">
-              <img src="assets/img/portrait.jpg" alt="" width="28" height="28">
+              <img src="assets/img/avatar-112.jpg" alt="" width="28" height="28" loading="lazy" decoding="async">
             </span>
             <div class="chat-bubble-ai">
               <p data-i18n="chat.greeting">你好！我是 Nick 的数字分身。关于我的学业、科研与项目，想了解的都可以问我。</p>
@@ -299,7 +344,7 @@
 
           <div class="chat-msg chat-msg--ai reveal">
             <span class="chat-avatar" aria-hidden="true">
-              <img src="assets/img/portrait.jpg" alt="" width="28" height="28">
+              <img src="assets/img/avatar-112.jpg" alt="" width="28" height="28" loading="lazy" decoding="async">
             </span>
             <div class="chat-bubble-ai">
               <p data-i18n="chat.a1">我在夯实计算机与数学的专业基础，同时探索 AI for Science——把机器学习与仿真方法用于真实科学问题（比如 Digital Resin）；课外参与学生工作，也保持着摄影这项长期爱好。</p>
@@ -314,7 +359,7 @@
 
           <div class="chat-msg chat-msg--ai reveal">
             <span class="chat-avatar" aria-hidden="true">
-              <img src="assets/img/portrait.jpg" alt="" width="28" height="28">
+              <img src="assets/img/avatar-112.jpg" alt="" width="28" height="28" loading="lazy" decoding="async">
             </span>
             <div class="chat-bubble-ai">
               <p data-i18n="chat.a2">当然。Digital Resin 是我的科研项目：为离子交换树脂构建数字孪生模型，用计算机模拟吸附过程，辅助树脂筛选与工艺优化。目前已完成分子建模、结合能计算与一维扩散-吸附模拟，处于 MVP 阶段。完整进展可以在信息页的「项目」板块查看。</p>
@@ -342,14 +387,14 @@
             </svg>
           </button>
         </div>
-        <p class="chat-note" data-i18n="chat.note">静态布局预览 · 对话功能将在 V3 上线后激活</p>
+        <p class="chat-note" data-i18n="chat.note">静态预览 · 对话功能开发中</p>
       </div>
     </div>
   </main>
 
   <!-- ============ Footer ============ -->
   <footer class="footer">
-    <p data-i18n="footer.text">© 2026 Nick Lee · V2.0</p>
+    <p data-i18n="footer.text">© 2026 Nick Lee · V4</p>
   </footer>
 
   <!-- ============ Project Detail Modal (V2) ============ -->
@@ -367,7 +412,7 @@
     </svg>
   </button>
 
-  <script src="assets/vendor/supabase-js.js"></script>
-  <script src="assets/js/main.js?v=2.4.0"></script>
+  <!-- supabase-js 按需加载（V4）：首屏不加载，打开项目详情 / 提交反馈时动态引入 -->
+  <script src="assets/js/main.js?v=4.1.0"></script>
 </body>
 </html>

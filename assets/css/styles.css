@@ -1,6 +1,10 @@
 /* ============================================================
-   Nick Lee — Personal Homepage  V2.0
+   Nick Lee — Personal Homepage  V4
    学院风 · 苹果式简洁 · 浅色/深色双主题 · 液态玻璃视觉
+   V4 变更：R3 互动数据 UI（点赞 · 留言）/ 44px 触控热区 /
+   键盘焦点态 / 表单对比度 / PWA 安全区 / 深色头像不反相
+   V4.1：项目进程 Timeline（Projects 板块总览，V4-12 区块）
+   （覆盖式新增集中在文件末尾「V4」区块）
    ============================================================ */
 
 /* ---------- Theme Variables ---------- */
@@ -1608,4 +1612,673 @@ body[data-view="chat"] .nav-links {
     grid-template-columns: 1fr;
     gap: 14px;
   }
+}
+
+/* ============================================================
+   V4 — R3 互动数据 / 无障碍 / 触控与安全区
+   （覆盖式规则：与上文同名选择器冲突时以本区块为准）
+   ============================================================ */
+
+/* ---------- V4-1. 变量微调：输入控件对比度（导航遮罩保持原有通透度） ---------- */
+:root {
+  --input-bg: rgba(255, 255, 255, 0.85);
+  --input-border: rgba(26, 35, 50, 0.52);
+}
+
+[data-theme="dark"] {
+  --input-bg: rgba(255, 255, 255, 0.07);
+  --input-border: rgba(237, 234, 226, 0.36);
+}
+
+/* ---------- V4-2. 触控热区：视觉尺寸不变，命中区域 ≥44px ---------- */
+.control-btn,
+.view-switch-btn,
+.menu-btn,
+.modal-close,
+.chat-send,
+.chat-chip {
+  position: relative;
+}
+
+.control-btn::after,
+.view-switch-btn::after,
+.menu-btn::after,
+.modal-close::after,
+.chat-send::after,
+.chat-chip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  min-width: 44px;
+  min-height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+/* ---------- V4-3. 键盘焦点态：仅键盘导航时显示描边 ---------- */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.fb-input:focus-visible,
+.fb-textarea:focus-visible,
+.chat-input:focus-visible,
+.comment-input:focus-visible,
+.comment-textarea:focus-visible {
+  outline: none; /* 输入控件以边框高亮表达焦点 */
+}
+
+/* ---------- V4-4. 按压反馈：60ms 快速响应 ---------- */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.control-btn:active,
+.view-switch-btn:active,
+.menu-btn:active,
+.modal-close:active,
+.chat-send:active,
+.back-to-top:active {
+  transform: scale(0.94);
+  transition-duration: 0.06s;
+}
+
+.chat-chip:active {
+  transform: translateY(-2px) scale(0.96);
+  transition-duration: 0.06s;
+}
+
+.btn:active {
+  transition-duration: 0.06s;
+}
+
+/* ---------- V4-5. 深色模式头像：不再反相，保留白底线稿本体 ---------- */
+[data-theme="dark"] .hero-portrait-frame {
+  background: #FFFFFF;
+  border-color: rgba(237, 234, 226, 0.18);
+}
+
+[data-theme="dark"] .hero-portrait {
+  filter: none;
+}
+
+[data-theme="dark"] .chat-avatar {
+  background: #FFFFFF;
+}
+
+[data-theme="dark"] .chat-avatar img {
+  filter: none;
+}
+
+/* ---------- V4-6. 表单输入：边框对比度达 WCAG 3:1 ----------
+   用 background-color 覆盖：避免 background 简写清空 .fb-select 的箭头背景图，
+   同时保留输入框自身的液态玻璃光感 */
+.fb-textarea,
+.fb-input {
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+}
+
+/* ---------- V4-7. 刘海屏安全区（配合 viewport-fit=cover） ---------- */
+.nav-inner {
+  padding-left: calc(24px + env(safe-area-inset-left));
+  padding-right: calc(24px + env(safe-area-inset-right));
+}
+
+.mobile-menu {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.chat-composer {
+  padding-bottom: calc(18px + env(safe-area-inset-bottom));
+}
+
+.back-to-top {
+  right: calc(24px + env(safe-area-inset-right));
+  bottom: calc(24px + env(safe-area-inset-bottom));
+}
+
+@media (max-width: 560px) {
+  .back-to-top {
+    right: calc(18px + env(safe-area-inset-right));
+    bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+
+  .chat-composer {
+    padding-bottom: calc(14px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ---------- V4-8. 项目互动：浏览量 / 喜爱按钮 ---------- */
+button.stat {
+  font-family: inherit;
+}
+
+.stat-like {
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.stat-like:hover {
+  border-color: var(--accent);
+}
+
+.stat-like.liked {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #FAF9F6;
+}
+
+.stat-like.liked b {
+  color: inherit;
+}
+
+[data-theme="dark"] .stat-like.liked {
+  color: #0F141B;
+}
+
+.stat-like:active {
+  transform: scale(0.94);
+}
+
+.stat-like:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ---------- V4-9. R3 留言：列表 + 发表表单 ---------- */
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.comments-loading,
+.comments-empty {
+  font-size: 14px;
+  color: var(--text-secondary);
+  padding: 14px 16px;
+  border: 1px dashed var(--divider);
+  border-radius: 12px;
+}
+
+.comment-item {
+  padding: 14px 16px;
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  background: var(--accent-soft);
+  transition: border-color 0.2s ease;
+}
+
+.comment-item:hover {
+  border-color: var(--glass-border);
+}
+
+.comment-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.comment-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.comment-date {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.comment-text {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.comment-input,
+.comment-textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  transition: border-color 0.25s ease;
+}
+
+.comment-textarea {
+  resize: vertical;
+  min-height: 78px;
+  line-height: 1.6;
+}
+
+.comment-input:focus,
+.comment-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.comment-input::placeholder,
+.comment-textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+.comment-form-foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.comment-submit {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: #FAF9F6;
+  background: var(--accent);
+  border: none;
+  border-radius: 980px;
+  padding: 11px 24px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.comment-submit:hover {
+  background: var(--accent-hover);
+}
+
+.comment-submit:active {
+  transform: scale(0.97);
+  transition-duration: 0.06s;
+}
+
+.comment-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.comment-status {
+  font-size: 13px;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.comment-status.success {
+  color: #1F9D4D;
+}
+
+.comment-status.error {
+  color: #C0392B;
+}
+
+[data-theme="dark"] .comment-status.success {
+  color: #34D17B;
+}
+
+[data-theme="dark"] .comment-status.error {
+  color: #FF7A72;
+}
+
+/* ---------- V4-10. 触摸设备：导航链接加高（≥44px 命中） ---------- */
+@media (pointer: coarse) {
+  .nav-links a {
+    padding: 10px 16px;
+  }
+}
+
+/* ============================================================
+   V4-11. 液态玻璃增强（Liquid Glass，贴近 iOS 26/27 质感）
+   苹果式思路，零实时滤镜开销：
+   ①「光学层」——静态渐变模拟光从左上射入玻璃的折射，GPU 合成即可；
+   ②「材质分层」——实时模糊只留给背后有内容穿过的浮层（导航/模态/菜单）；
+   ③ 背后是纯色背景的卡片与输入控件改用预合成材质（视觉等价、零采样）。
+   ============================================================ */
+
+/* 玻璃底色：折射渐变（亮面 → 过渡 → 反光）+ 基调色
+   注意：只作用于 --glass-bg 控件层；卡片用的 --bg-elevated 保持原样不动 */
+:root {
+  --glass-bg: linear-gradient(
+      155deg,
+      rgba(255, 255, 255, 0.62),
+      rgba(255, 255, 255, 0.2) 44%,
+      rgba(255, 255, 255, 0.44)
+    ),
+    rgba(255, 255, 255, 0.22);
+  --glass-highlight:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 1px 0 0 rgba(255, 255, 255, 0.4),
+    inset -1px 0 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(26, 35, 50, 0.05);
+}
+
+[data-theme="dark"] {
+  --glass-bg: linear-gradient(
+      155deg,
+      rgba(255, 255, 255, 0.12),
+      rgba(255, 255, 255, 0.02) 44%,
+      rgba(255, 255, 255, 0.08)
+    ),
+    rgba(27, 35, 48, 0.34);
+  --glass-highlight:
+    inset 0 1px 0 rgba(237, 234, 226, 0.22),
+    inset 1px 0 0 rgba(237, 234, 226, 0.07),
+    inset -1px 0 0 rgba(237, 234, 226, 0.07),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.26);
+}
+
+/* 材质分层：背后为纯色背景的卡片/输入控件停止实时模糊采样
+   这些元素背后没有内容穿过，模糊前后视觉等价；滚动时省下大量逐帧采样 */
+.feature-card,
+.project-card,
+.fb-textarea,
+.fb-input,
+.hero-pill,
+.chat-chip,
+.chat-input-wrap {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* 无障碍：系统开启「减少透明度」时回退为不透明材质（Apple 同款回退思路） */
+@media (prefers-reduced-transparency: reduce) {
+  .navbar.scrolled,
+  .mobile-menu,
+  .modal-overlay,
+  .modal-panel {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .navbar.scrolled,
+  .mobile-menu {
+    background: var(--bg);
+  }
+}
+
+/* ============================================================
+   V4-12. 项目进程 Timeline（Projects 板块总览）
+   设计依据：namethatui.com/web/timeline —— <ol> 语义列表；
+   每项自拥「圆点 → 下一圆点」的连接线段（止于最后圆点，无贯穿拖尾）；
+   实心点 = 已完成 · 呼吸空心点 = 进行中 · 描边空心点 = 规划中。
+   ============================================================ */
+
+.timeline-block {
+  margin-top: 96px;
+  --tl-line-done: rgba(44, 74, 138, 0.22);
+  --tl-ring: rgba(44, 74, 138, 0.12);
+  --tl-pulse: rgba(44, 74, 138, 0.35);
+  --tl-pulse-fade: rgba(44, 74, 138, 0);
+  --tl-planned-border: rgba(26, 35, 50, 0.22);
+}
+
+[data-theme="dark"] .timeline-block {
+  --tl-line-done: rgba(122, 155, 209, 0.3);
+  --tl-ring: rgba(122, 155, 209, 0.16);
+  --tl-pulse: rgba(122, 155, 209, 0.4);
+  --tl-pulse-fade: rgba(122, 155, 209, 0);
+  --tl-planned-border: rgba(237, 234, 226, 0.26);
+}
+
+.timeline-title {
+  font-size: clamp(24px, 3.2vw, 30px);
+  margin-bottom: 14px;
+}
+
+.timeline-lead {
+  font-size: 16px;
+  color: var(--text-secondary);
+  max-width: 620px;
+  margin-bottom: 48px;
+}
+
+/* 布局基线：阶段列 | 轴列 | 内容列 */
+.timeline {
+  --tl-phase-w: 84px;
+  --tl-axis-w: 30px;
+  --tl-dot-size: 13px;
+  --tl-dot-y: 32px;
+  --tl-gap: 44px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 800px;
+}
+
+.timeline-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--tl-phase-w) var(--tl-axis-w) minmax(0, 1fr);
+  padding-bottom: var(--tl-gap);
+}
+
+.timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+/* 连接线段：只画「当前圆点 → 下一圆点」一段；
+   top: dot-y + height: 100% ⇒ 恰好抵达下一项圆点中心；
+   最后一项不画，圆点收尾无拖尾 */
+.timeline-item:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--tl-phase-w) + var(--tl-axis-w) / 2 - 1px);
+  top: var(--tl-dot-y);
+  height: 100%;
+  width: 2px;
+  background: var(--tl-line-done);
+}
+
+/* 进行中 → 规划中：未来一段改虚线，表达「尚未发生」 */
+.timeline-item--current:not(:last-child)::before {
+  width: 0;
+  background: none;
+  border-left: 2px dashed var(--divider);
+}
+
+/* 圆点：各状态共用尺寸与轴心对齐（z-index 盖过线段，收尾干净） */
+.timeline-dot {
+  grid-column: 2;
+  justify-self: center;
+  align-self: start;
+  position: relative;
+  z-index: 1;
+  width: var(--tl-dot-size);
+  height: var(--tl-dot-size);
+  margin-top: calc(var(--tl-dot-y) - (var(--tl-dot-size) / 2));
+  border-radius: 50%;
+}
+
+.timeline-item--done .timeline-dot {
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--tl-ring);
+}
+
+.timeline-item--current .timeline-dot {
+  background: var(--bg);
+  border: 2.5px solid var(--accent);
+  animation: tl-pulse 2.4s ease-out infinite;
+}
+
+@keyframes tl-pulse {
+  0% { box-shadow: 0 0 0 0 var(--tl-pulse); }
+  70% { box-shadow: 0 0 0 9px var(--tl-pulse-fade); }
+  100% { box-shadow: 0 0 0 0 var(--tl-pulse-fade); }
+}
+
+.timeline-item--planned .timeline-dot {
+  background: var(--bg);
+  border: 2px solid var(--tl-planned-border);
+}
+
+/* 阶段编号列：小字标签 + 大号衬线数字（视觉顺序 = 阅读顺序） */
+.timeline-phase {
+  grid-column: 1;
+  justify-self: end;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding-top: calc(var(--tl-dot-y) - 18px);
+  text-align: right;
+}
+
+.timeline-phase-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.timeline-phase-num {
+  font-family: Georgia, "Times New Roman", "Songti SC", "STSong", "SimSun", serif;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--text-secondary);
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-item--current .timeline-phase-num {
+  color: var(--accent);
+  opacity: 1;
+}
+
+/* 内容卡片：与全站卡片同一材质语言（预合成材质，零实时模糊） */
+.timeline-content {
+  grid-column: 3;
+  background: var(--bg-elevated);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 20px 26px 22px;
+  box-shadow: var(--card-shadow);
+}
+
+.timeline-item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 6px;
+}
+
+.timeline-content h4 {
+  font-family: Georgia, "Times New Roman", "Songti SC", "STSong", "SimSun", serif;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.timeline-content p {
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--text-secondary);
+}
+
+/* 状态标签：已完成（柔和底）· 进行中（实心高亮）· 规划中（描边） */
+.tl-status {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 11px;
+  border-radius: 980px;
+  white-space: nowrap;
+}
+
+.tl-status--done {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.tl-status--current {
+  color: #FAF9F6;
+  background: var(--accent);
+}
+
+[data-theme="dark"] .tl-status--current {
+  color: #0F141B;
+}
+
+.tl-status--planned {
+  color: var(--text-secondary);
+  border: 1px solid var(--divider);
+  padding: 2px 10px;
+}
+
+/* 当前阶段：主题色描边 + 提升阴影，形成唯一视觉焦点 */
+.timeline-item--current .timeline-content {
+  border-color: var(--accent);
+  box-shadow: var(--card-shadow-hover);
+}
+
+/* 规划中：虚线描边、透明底、无阴影，与已发生内容分层 */
+.timeline-item--planned .timeline-content {
+  background: transparent;
+  border-color: var(--divider);
+  border-style: dashed;
+  box-shadow: none;
+}
+
+/* 逐项错峰入场（滚入重播，与全站 .reveal 行为一致） */
+.timeline-item:nth-child(2) { transition-delay: 0.07s; }
+.timeline-item:nth-child(3) { transition-delay: 0.14s; }
+.timeline-item:nth-child(4) { transition-delay: 0.21s; }
+.timeline-item:nth-child(5) { transition-delay: 0.28s; }
+
+@media (max-width: 768px) {
+  .timeline-block { margin-top: 72px; }
+
+  .timeline {
+    --tl-phase-w: 58px;
+    --tl-axis-w: 26px;
+    --tl-dot-y: 28px;
+    --tl-gap: 36px;
+  }
+
+  .timeline-lead { margin-bottom: 40px; }
+  .timeline-phase { padding-top: calc(var(--tl-dot-y) - 16px); }
+  .timeline-phase-label { font-size: 9px; letter-spacing: 0.12em; }
+  .timeline-phase-num { font-size: 19px; }
+  .timeline-content { padding: 18px 20px 20px; border-radius: 14px; }
+  .timeline-content h4 { font-size: 17px; }
+  .timeline-content p { font-size: 13.5px; }
+}
+
+@media (max-width: 560px) {
+  .timeline {
+    --tl-phase-w: 46px;
+    --tl-axis-w: 24px;
+    --tl-dot-size: 12px;
+    --tl-gap: 32px;
+  }
+
+  .timeline-item-head { flex-wrap: wrap; gap: 4px 10px; }
+  .timeline-content { padding: 16px 18px 18px; }
+  .timeline-phase-label { font-size: 9px; letter-spacing: 0.08em; }
+  .timeline-phase-num { font-size: 17px; }
+  .tl-status { font-size: 11px; padding: 3px 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timeline-item:nth-child(n) { transition-delay: 0s; }
+  .timeline-item--current .timeline-dot { animation: none; }
 }

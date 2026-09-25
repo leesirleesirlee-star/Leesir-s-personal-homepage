@@ -1,7 +1,9 @@
 /* ============================================================
-   Nick Lee — Personal Homepage  V2.0
-   双语切换 / 双主题切换 / 入场动画 / 导航毛玻璃
-   项目详情模态 / About 卡片展开 / 移动端菜单 / Scroll Spy
+   Nick Lee — Personal Homepage  V4
+   双语切换 / 双主题切换 / 入场动画 / 导航毛玻璃 / 项目详情模态
+   R3 互动数据（浏览量 · 喜爱 · 留言，Supabase 直连）
+   Supabase 按需加载 / Feedback 表单（V3 R2）/ Scroll Spy
+   V4.1：Projects 板块「项目进程」Timeline（双语 · 阶段编号 + 状态）
    ============================================================ */
 
 (function () {
@@ -53,10 +55,17 @@
       "projects.status.planning": "筹备中",
       "projects.hint": "查看详情",
 
+      "timeline.eyebrow": "Roadmap",
+      "timeline.title": "项目进程",
+      "timeline.lead": "从分子建模到 MVP：Digital Resin 的推进路径与下一步计划。",
+      "timeline.phaseLabel": "阶段",
+      "timeline.status.done": "已完成",
+      "timeline.status.current": "进行中",
+      "timeline.status.planned": "规划中",
+
       "modal.eyebrow": "项目详情",
       "modal.views": "浏览量",
-      "modal.likes": "喜爱量",
-      "modal.statsNote": "互动数据将在 V3 上线后激活",
+      "modal.likes": "喜爱",
       "modal.sec.background": "项目背景",
       "modal.sec.goals": "项目目标（MVP 阶段）",
       "modal.sec.done": "已完成工作",
@@ -64,6 +73,19 @@
       "modal.sec.next": "MVP 收尾计划",
       "modal.sec.future": "未来扩展方向",
       "modal.comingSoon": "项目详情筹备中，敬请期待。",
+      "comments.title": "留言",
+      "comments.loading": "正在加载留言……",
+      "comments.loadFail": "留言加载失败，请稍后刷新。",
+      "comments.empty": "还没有留言，欢迎写下第一条。",
+      "comments.namePh": "昵称（可留空，默认显示「访客」）",
+      "comments.contentPh": "写下你想说的话……",
+      "comments.submit": "发表留言",
+      "comments.posting": "提交中……",
+      "comments.success": "✓ 留言已发布，感谢！",
+      "comments.error": "留言失败，请检查网络后重试。",
+      "comments.emptyContent": "请先输入留言内容。",
+      "comments.wait": "留言太频繁了，请稍后再试。",
+      "comments.guest": "访客",
 
       "learning.eyebrow": "Learning & Interests",
       "learning.title": "学习与兴趣",
@@ -78,7 +100,7 @@
       "learning.i5.title": "摄影",
       "learning.i5.desc": "热爱影像记录与光影表达，后期将上传个人作品，制作线上画展。",
       "view.info": "信息",
-      "view.chat": "Chat",
+      "view.chat": "聊天",
       "chat.greeting": "你好！我是 Nick 的数字分身。关于我的学业、科研与项目，想了解的都可以问我。",
       "chat.q1": "Nick 最近在学什么？",
       "chat.a1": "我在夯实计算机与数学的专业基础，同时探索 AI for Science——把机器学习与仿真方法用于真实科学问题（比如 Digital Resin）；课外参与学生工作，也保持着摄影这项长期爱好。",
@@ -89,7 +111,7 @@
       "chat.chip2": "Nick 的长期目标是什么？",
       "chat.chip3": "Nick 有哪些兴趣爱好？",
       "chat.placeholder": "向 Nick 提问……",
-      "chat.note": "静态布局预览 · 对话功能将在 V3 上线后激活",
+      "chat.note": "静态预览 · 对话功能开发中",
 
       "contact.eyebrow": "Contact",
       "contact.title": "联系我",
@@ -101,6 +123,7 @@
       "feedback.lead": "无论是内容、设计还是使用体验——你的每一条反馈，都会直接决定下一版的改进方向。",
       "feedback.contentLabel": "你的反馈",
       "feedback.contentPh": "对内容、结构、设计或任何想法的建议……",
+      "feedback.contentHint": "至少写 6 个字，让建议更具体、更可执行",
       "feedback.contactLabel": "联系方式（可选）",
       "feedback.contactPh": "邮箱或其他，方便我回复；可不填",
       "feedback.relLabel": "你与我的关系",
@@ -124,7 +147,7 @@
       "feedback.error": "提交失败，请检查网络后重试。",
       "feedback.empty": "请先填写反馈内容。",
 
-      "footer.text": "© 2026 Nick Lee · V2.0"
+      "footer.text": "© 2026 Nick Lee · V4"
     },
 
     en: {
@@ -171,10 +194,17 @@
       "projects.status.planning": "Planning",
       "projects.hint": "View Details",
 
+      "timeline.eyebrow": "Roadmap",
+      "timeline.title": "Project Roadmap",
+      "timeline.lead": "From molecular modeling to MVP: how Digital Resin has progressed, and what comes next.",
+      "timeline.phaseLabel": "Phase",
+      "timeline.status.done": "Completed",
+      "timeline.status.current": "In Progress",
+      "timeline.status.planned": "Planned",
+
       "modal.eyebrow": "Project Detail",
       "modal.views": "Views",
-      "modal.likes": "Likes",
-      "modal.statsNote": "Interactive stats go live in V3",
+      "modal.likes": "Like",
       "modal.sec.background": "Background",
       "modal.sec.goals": "Goals (MVP)",
       "modal.sec.done": "Completed",
@@ -182,6 +212,19 @@
       "modal.sec.next": "MVP Wrap-up",
       "modal.sec.future": "Future Directions",
       "modal.comingSoon": "Details coming soon.",
+      "comments.title": "Comments",
+      "comments.loading": "Loading comments…",
+      "comments.loadFail": "Failed to load comments. Please refresh later.",
+      "comments.empty": "No comments yet — be the first to leave one.",
+      "comments.namePh": "Nickname (optional, defaults to \u201cGuest\u201d)",
+      "comments.contentPh": "Share your thoughts…",
+      "comments.submit": "Post Comment",
+      "comments.posting": "Posting…",
+      "comments.success": "✓ Comment posted — thank you!",
+      "comments.error": "Failed to post — please check your connection and try again.",
+      "comments.emptyContent": "Please write something first.",
+      "comments.wait": "Too frequent — please try again in a moment.",
+      "comments.guest": "Guest",
 
       "learning.eyebrow": "Learning & Interests",
       "learning.title": "Learning & Interests",
@@ -219,6 +262,7 @@
       "feedback.lead": "Content, design, usability — every piece of feedback directly shapes the next version.",
       "feedback.contentLabel": "Your feedback",
       "feedback.contentPh": "Suggestions on content, structure, design, or anything else…",
+      "feedback.contentHint": "At least 6 characters — the more specific, the better",
       "feedback.contactLabel": "Contact (optional)",
       "feedback.contactPh": "Email or anything — only if you'd like a reply.",
       "feedback.relLabel": "Your relationship with me",
@@ -242,7 +286,7 @@
       "feedback.error": "Submission failed — please check your connection and try again.",
       "feedback.empty": "Please write your feedback first.",
 
-      "footer.text": "© 2026 Nick Lee · V2.0"
+      "footer.text": "© 2026 Nick Lee · V4"
     }
   };
 
@@ -354,13 +398,126 @@
     }
   };
 
-  /* ---------- 1b. Supabase 客户端（V3） ----------
-     anon key 为 Supabase 可公开密钥，安全由 RLS 策略保证；service key 永不入库 */
+  /* ---------- 1b-2. 项目进程 Timeline 数据（V4.1，双语） ----------
+     总览级粒度：已完成 3 阶段 / 进行中 1 阶段 / 规划中 1 阶段；
+     详细清单仍在项目详情模态中展示，两者互补不重复 */
+  var TIMELINE = [
+    {
+      status: "done",
+      zh: {
+        title: "分子建模与能量计算",
+        desc: "使用 RDKit 构建苯乙烯磺酸单体与 Na⁺ 的分子结构；经 MACE-MP-0 优化，算得结合能 -264.6 kJ/mol。"
+      },
+      en: {
+        title: "Molecular Modeling & Energetics",
+        desc: "Built styrene-sulfonate monomer and Na⁺ structures with RDKit; optimized with MACE-MP-0 to obtain a binding energy of −264.6 kJ/mol."
+      }
+    },
+    {
+      status: "done",
+      zh: {
+        title: "孔隙结构与扩散映射",
+        desc: "以 Boolean 随机几何模型生成二维孔隙结构（孔隙率 0.343），并经 Bruggeman 关系映射为有效扩散系数。"
+      },
+      en: {
+        title: "Pore Structure & Diffusivity Mapping",
+        desc: "Generated a 2D pore structure with a Boolean stochastic model (porosity 0.343), mapped to effective diffusivity via the Bruggeman relation."
+      }
+    },
+    {
+      status: "done",
+      zh: {
+        title: "扩散-吸附数值模拟",
+        desc: "使用 DeepXDE 求解含 Langmuir 吸附项的一维扩散-吸附方程，提取平均吸附量随时间变化的动力学曲线。"
+      },
+      en: {
+        title: "Diffusion–Adsorption Simulation",
+        desc: "Solved the 1D diffusion–adsorption equation with a Langmuir term using DeepXDE, and extracted the adsorption-kinetics curve over time."
+      }
+    },
+    {
+      status: "current",
+      zh: {
+        title: "MVP 收尾",
+        desc: "生成吸附等温线、编写统一入口脚本 main.py、整理代码与文档，形成可交付的 MVP 版本。"
+      },
+      en: {
+        title: "MVP Wrap-up",
+        desc: "Generating adsorption isotherms, writing the unified main.py entry script, and organizing code and docs into a deliverable MVP."
+      }
+    },
+    {
+      status: "planned",
+      zh: {
+        title: "后续扩展",
+        desc: "多离子与温度支持、双尺度孔隙模型、柱式吸附突破曲线、Streamlit 可视化与主动学习闭环。"
+      },
+      en: {
+        title: "Future Extensions",
+        desc: "Multi-ion and temperature support, dual-scale pore models, column breakthrough curves, Streamlit visualization, and an active-learning loop."
+      }
+    }
+  ];
+
+  /* ---------- 1c. Supabase 客户端（V4：按需加载） ----------
+     anon key 为 Supabase 可公开密钥，安全由 RLS 策略保证；service key 永不入库。
+     首屏不加载 supabase-js（218KB）：打开项目详情 / 提交反馈时动态引入，加载一次并复用 */
   var SUPABASE_URL = "https://hblrhrhwmnlpvpadvgmq.supabase.co";
   var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhibHJocmh3bW5scHZwYWR2Z21xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2Mjc4NTUsImV4cCI6MjEwNTIwMzg1NX0.tBGCHkTJN_EoiycwZf36ARirJSKK8xvJXYSlQISe1tM";
   var supabaseClient = null;
-  if (window.supabase && typeof window.supabase.createClient === "function") {
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  var supabaseLoading = null;
+
+  function loadSupabase() {
+    if (supabaseClient) return Promise.resolve(supabaseClient);
+    if (supabaseLoading) return supabaseLoading;
+    supabaseLoading = new Promise(function (resolve, reject) {
+      var s = document.createElement("script");
+      s.src = "assets/vendor/supabase-js.js";
+      s.onload = function () {
+        if (window.supabase && typeof window.supabase.createClient === "function") {
+          supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          resolve(supabaseClient);
+        } else {
+          supabaseLoading = null;
+          reject(new Error("supabase-js unavailable"));
+        }
+      };
+      s.onerror = function () {
+        supabaseLoading = null;
+        reject(new Error("supabase-js load failed"));
+      };
+      document.head.appendChild(s);
+    });
+    return supabaseLoading;
+  }
+
+  /* ---------- 1d. 通用工具（V4） ---------- */
+  function dict() {
+    return i18n[htmlEl.getAttribute("lang") === "en" ? "en" : "zh"] || i18n.zh;
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? "" : value).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '\"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function pad2(n) {
+    return (n < 10 ? "0" : "") + n;
+  }
+
+  function fmtDate(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+  }
+
+  function safeGet(store, key) {
+    try { return store.getItem(key); } catch (e) { return null; }
+  }
+
+  function safeSet(store, key, value) {
+    try { store.setItem(key, value); } catch (e) {}
   }
 
   /* ---------- 2. 语言切换 ---------- */
@@ -395,20 +552,54 @@
       : "Nick Lee · Personal Homepage";
     langToggle.textContent = lang === "zh" ? "EN" : "中";
     try { localStorage.setItem("nick-homepage-lang", lang); } catch (e) {}
-    // 模态打开时切换语言，重渲染详情内容
-    if (openProjectId) renderProjectModal(openProjectId);
+    // 模态打开时切换语言：重渲染详情并重新加载互动数据
+    if (openProjectId) {
+      renderProjectModal(openProjectId);
+      initProjectInteraction(openProjectId);
+    }
     // 已展开的 About 卡片，重设 hint 文案
     var expandedCards = document.querySelectorAll(".feature-card.expanded");
     for (var ec = 0; ec < expandedCards.length; ec++) {
       var hint = expandedCards[ec].querySelector(".feature-hint");
       if (hint) hint.textContent = dict["about.hintLess"];
     }
+    // 项目进程 Timeline：按当前语言重渲染（首屏初始化与切换语言共用）
+    renderTimeline();
   }
 
   langToggle.addEventListener("click", function () {
     var current = htmlEl.getAttribute("lang") === "en" ? "en" : "zh";
     applyLang(current === "zh" ? "en" : "zh");
   });
+
+  /* ---------- 2b. 项目进程 Timeline 渲染（V4.1） ---------- */
+  function renderTimeline() {
+    var listEl = document.getElementById("timeline");
+    if (!listEl) return;
+    var d = dict();
+    var lang = htmlEl.getAttribute("lang") === "en" ? "en" : "zh";
+    var html = "";
+    for (var i = 0; i < TIMELINE.length; i++) {
+      var item = TIMELINE[i];
+      var copy = item[lang] || item.zh;
+      html += '<li class="timeline-item timeline-item--' + item.status + ' reveal">'
+        + '<div class="timeline-phase">'
+        + '<span class="timeline-phase-label">' + d["timeline.phaseLabel"] + '</span>'
+        + '<span class="timeline-phase-num">' + pad2(i + 1) + '</span>'
+        + '</div>'
+        + '<span class="timeline-dot" aria-hidden="true"></span>'
+        + '<div class="timeline-content">'
+        + '<div class="timeline-item-head">'
+        + '<h4>' + escapeHtml(copy.title) + '</h4>'
+        + '<span class="tl-status tl-status--' + item.status + '">' + d["timeline.status." + item.status] + '</span>'
+        + '</div>'
+        + '<p>' + escapeHtml(copy.desc) + '</p>'
+        + '</div>'
+        + '</li>';
+    }
+    listEl.innerHTML = html;
+    observeRevealNodes(listEl.querySelectorAll(".reveal"));
+  }
 
   /* ---------- 3. 主题切换 ---------- */
   function detectTheme() {
@@ -432,13 +623,29 @@
   });
 
   /* ---------- 4. 入场动画（IntersectionObserver，滚入重播） ---------- */
+  var revealObserver = null;
+  var revealInitDone = false;
+
+  /* 动态渲染的 .reveal 节点（如 Timeline 项）在此登记：
+     初始化阶段留给 initReveal 统一观察；IO 不可用时直接显现 */
+  function observeRevealNodes(nodes) {
+    if (!nodes || !nodes.length) return;
+    if (revealObserver) {
+      for (var i = 0; i < nodes.length; i++) revealObserver.observe(nodes[i]);
+      return;
+    }
+    if (!revealInitDone) return;
+    for (var j = 0; j < nodes.length; j++) nodes[j].classList.add("visible");
+  }
+
   function initReveal() {
     var items = document.querySelectorAll(".reveal");
+    revealInitDone = true;
     if (!("IntersectionObserver" in window)) {
       for (var i = 0; i < items.length; i++) items[i].classList.add("visible");
       return;
     }
-    var observer = new IntersectionObserver(function (entries) {
+    revealObserver = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         /* 滚入视口→显现；离开→回到初始态，下次滚入再次重播 */
         if (entry.isIntersecting) {
@@ -448,7 +655,7 @@
         }
       });
     }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
-    for (var j = 0; j < items.length; j++) observer.observe(items[j]);
+    for (var j = 0; j < items.length; j++) revealObserver.observe(items[j]);
   }
 
   /* ---------- 5. 导航毛玻璃 ---------- */
@@ -494,12 +701,18 @@
       { id: "feedback", el: document.getElementById("feedback") }
     ];
     function clearActive() {
-      for (var a = 0; a < links.length; a++) links[a].classList.remove("active");
+      for (var a = 0; a < links.length; a++) {
+        links[a].classList.remove("active");
+        links[a].removeAttribute("aria-current");
+      }
     }
     function setActive(id) {
       clearActive();
       for (var a = 0; a < links.length; a++) {
-        if (links[a].getAttribute("href") === "#" + id) links[a].classList.add("active");
+        if (links[a].getAttribute("href") === "#" + id) {
+          links[a].classList.add("active");
+          links[a].setAttribute("aria-current", "true");
+        }
       }
     }
     var hero = document.getElementById("hero");
@@ -565,13 +778,11 @@
     html += gh;
     html += '</div>';
 
-    if (p.background || p.done || p.goals) {
-      html += '<div class="modal-stats">';
-      html += '<span class="stat">' + (lang === "zh" ? "浏览量" : "Views") + ' <b>—</b></span>';
-      html += '<span class="stat">' + (lang === "zh" ? "喜爱量" : "Likes") + ' <b>—</b></span>';
-      html += '<span class="stat-note">' + (lang === "zh" ? "互动数据将在 V3 上线后激活" : "Interactive stats go live in V3") + '</span>';
-      html += '</div>';
-    }
+    /* R3 互动数据（V4）：浏览量（打开即计数）+ 喜爱按钮（本地去重，单向） */
+    html += '<div class="modal-stats">';
+    html += '<span class="stat">' + t("modal.views") + ' <b id="stat-views-num">—</b></span>';
+    html += '<button class="stat stat-like" id="stat-like" type="button" aria-pressed="false">' + t("modal.likes") + ' <b id="stat-likes-num">—</b></button>';
+    html += '</div>';
 
     if (p.background) {
       html += '<section class="m-sec"><h3>' + t("modal.sec.background") + '</h3><p>' + p.background + '</p></section>';
@@ -602,6 +813,19 @@
       html += '<section class="m-sec"><p class="modal-note">' + p.note + '</p></section>';
     }
 
+    /* R3 留言（V4）：列表 + 发表表单（honeypot + 30s 限频） */
+    html += '<section class="m-sec"><h3>' + t("comments.title") + '</h3>';
+    html += '<div class="comments-list" id="comments-list"><p class="comments-loading">' + t("comments.loading") + '</p></div>';
+    html += '<form class="comment-form" id="comment-form" novalidate>';
+    html += '<input class="comment-input" id="comment-name" type="text" maxlength="30" autocomplete="nickname" placeholder="' + t("comments.namePh") + '" aria-label="' + t("comments.namePh") + '">';
+    html += '<textarea class="comment-textarea" id="comment-content" maxlength="500" rows="3" placeholder="' + t("comments.contentPh") + '" aria-label="' + t("comments.contentPh") + '"></textarea>';
+    html += '<input type="text" id="comment-hp" class="fb-hp" tabindex="-1" autocomplete="off" aria-hidden="true">';
+    html += '<div class="comment-form-foot">';
+    html += '<button class="comment-submit" id="comment-submit" type="submit">' + t("comments.submit") + '</button>';
+    html += '<p class="comment-status" id="comment-status" role="status" aria-live="polite"></p>';
+    html += '</div>';
+    html += '</form></section>';
+
     modalBody.innerHTML = html;
   }
 
@@ -609,6 +833,7 @@
     if (!id) return;
     openProjectId = id;
     renderProjectModal(id);
+    initProjectInteraction(id);
     modal.classList.add("open");
     modal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
@@ -642,6 +867,151 @@
     });
     window.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && openProjectId) closeProjectModal();
+    });
+  }
+
+  /* ---------- 5b-2. R3 互动数据（V4）：浏览量 / 喜爱 / 留言 ---------- */
+  var VIEW_KEY = "viewed:";
+  var LIKE_KEY = "liked:";
+  var LAST_COMMENT_KEY = "lastCommentAt";
+  var COMMENT_COOLDOWN = 30000; /* 30s 简易限频 */
+
+  function hasViewed(id) { return safeGet(sessionStorage, VIEW_KEY + id) === "1"; }
+  function markViewed(id) { safeSet(sessionStorage, VIEW_KEY + id, "1"); }
+  function isLiked(id) { return safeGet(localStorage, LIKE_KEY + id) === "1"; }
+  function markLiked(id) { safeSet(localStorage, LIKE_KEY + id, "1"); }
+
+  function setCommentStatus(type, text) {
+    var el = document.getElementById("comment-status");
+    if (!el) return;
+    el.className = "comment-status" + (type ? " " + type : "");
+    el.textContent = text || "";
+  }
+
+  function loadComments(sb, id) {
+    var listEl = document.getElementById("comments-list");
+    if (!listEl) return;
+    function fail() {
+      listEl.innerHTML = '<p class="comments-empty">' + escapeHtml(dict()["comments.loadFail"]) + '</p>';
+    }
+    sb.from("comments")
+      .select("nickname, content, created_at")
+      .eq("project_id", id)
+      .order("created_at", { ascending: false })
+      .limit(50)
+      .then(function (res) {
+        var d = dict();
+        if (res.error) { fail(); return; }
+        var rows = res.data || [];
+        if (!rows.length) {
+          listEl.innerHTML = '<p class="comments-empty">' + escapeHtml(d["comments.empty"]) + '</p>';
+          return;
+        }
+        var html = "";
+        for (var i = 0; i < rows.length; i++) {
+          var r = rows[i];
+          html += '<div class="comment-item">';
+          html += '<div class="comment-head">';
+          html += '<span class="comment-name">' + escapeHtml(r.nickname || d["comments.guest"]) + '</span>';
+          html += '<span class="comment-date">' + escapeHtml(fmtDate(r.created_at)) + '</span>';
+          html += '</div>';
+          html += '<p class="comment-text">' + escapeHtml(r.content) + '</p>';
+          html += '</div>';
+        }
+        listEl.innerHTML = html;
+      }, fail);
+  }
+
+  function initProjectInteraction(id) {
+    var viewsNum = document.getElementById("stat-views-num");
+    var likesNum = document.getElementById("stat-likes-num");
+    var likeBtn = document.getElementById("stat-like");
+
+    /* 喜爱：本地单向去重（已赞不可取消） */
+    if (likeBtn) {
+      if (isLiked(id)) {
+        likeBtn.classList.add("liked");
+        likeBtn.setAttribute("aria-pressed", "true");
+      }
+      likeBtn.addEventListener("click", function () {
+        if (isLiked(id)) return;
+        likeBtn.disabled = true;
+        loadSupabase().then(function (sb) {
+          return sb.rpc("increment_likes", { p_project_id: id });
+        }).then(function (res) {
+          likeBtn.disabled = false;
+          if (!res || res.error) return;
+          if (typeof res.data === "number" && likesNum) likesNum.textContent = res.data;
+          markLiked(id);
+          likeBtn.classList.add("liked");
+          likeBtn.setAttribute("aria-pressed", "true");
+        }, function () {
+          likeBtn.disabled = false;
+        });
+      });
+    }
+
+    /* 统计 + 留言：按需加载 supabase-js 后拉取 */
+    loadSupabase().then(function (sb) {
+      sb.from("project_stats").select("views, likes").eq("project_id", id).single().then(function (res) {
+        if (!res.error && res.data) {
+          if (likesNum) likesNum.textContent = res.data.likes;
+          if (hasViewed(id) && viewsNum) viewsNum.textContent = res.data.views;
+        }
+        /* 本会话首次打开：RPC 计数；先本地标记，避免并发重复 +1 */
+        if (!hasViewed(id)) {
+          markViewed(id);
+          sb.rpc("increment_views", { p_project_id: id }).then(function (r2) {
+            if (!r2.error && typeof r2.data === "number" && viewsNum) viewsNum.textContent = r2.data;
+          });
+        }
+      });
+      loadComments(sb, id);
+    }, function () {
+      var listEl = document.getElementById("comments-list");
+      if (listEl) listEl.innerHTML = '<p class="comments-empty">' + escapeHtml(dict()["comments.loadFail"]) + '</p>';
+    });
+
+    /* 留言提交 */
+    var formEl = document.getElementById("comment-form");
+    if (!formEl) return;
+    formEl.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var d = dict();
+      var hpEl = document.getElementById("comment-hp");
+      if (hpEl && hpEl.value) { formEl.reset(); return; } /* honeypot：机器人静默丢弃 */
+      var nameEl = document.getElementById("comment-name");
+      var contentEl = document.getElementById("comment-content");
+      var submitBtn = document.getElementById("comment-submit");
+      var content = contentEl.value.trim();
+      if (!content) { setCommentStatus("error", d["comments.emptyContent"]); contentEl.focus(); return; }
+      var last = parseInt(safeGet(localStorage, LAST_COMMENT_KEY) || "0", 10) || 0;
+      if (Date.now() - last < COMMENT_COOLDOWN) { setCommentStatus("error", d["comments.wait"]); return; }
+
+      submitBtn.disabled = true;
+      var originalText = submitBtn.textContent;
+      submitBtn.textContent = d["comments.posting"];
+
+      loadSupabase().then(function (sb) {
+        var payload = { project_id: id, content: content.slice(0, 500) };
+        var name = (nameEl.value || "").trim().slice(0, 30);
+        if (name) payload.nickname = name; /* 留空则用数据库默认「访客」 */
+        return sb.from("comments").insert(payload).then(function (res) {
+          return { res: res, sb: sb };
+        });
+      }).then(function (out) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+        if (!out.res || out.res.error) { setCommentStatus("error", d["comments.error"]); return; }
+        safeSet(localStorage, LAST_COMMENT_KEY, String(Date.now()));
+        setCommentStatus("success", d["comments.success"]);
+        formEl.reset();
+        loadComments(out.sb, id);
+      }, function () {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+        setCommentStatus("error", d["comments.error"]);
+      });
     });
   }
 
@@ -779,9 +1149,6 @@
     }
     deviceEl.value = detectDeviceType();
 
-    function dict() {
-      return i18n[htmlEl.getAttribute("lang") === "en" ? "en" : "zh"] || i18n.zh;
-    }
     function setStatus(type, text) {
       if (fadeTimer) { clearTimeout(fadeTimer); fadeTimer = null; }
       statusEl.className = "fb-status" + (type ? " " + type : "");
@@ -797,7 +1164,6 @@
       if (!relEl.value) { setStatus("error", d["feedback.relRequired"]); relEl.focus(); return; }
       var content = contentEl.value.trim();
       if (!content) { setStatus("error", d["feedback.empty"]); return; }
-      if (!supabaseClient) { setStatus("error", d["feedback.error"]); return; }
 
       submitBtn.disabled = true;
       submitLabel.textContent = d["feedback.submitting"];
@@ -807,9 +1173,9 @@
         submitBtn.disabled = false;
         submitLabel.textContent = d["feedback.submit"];
       }
-      supabaseClient
-        .from("feedback")
-        .insert({
+      /* V4：supabase-js 按需加载后再提交（首屏省 218KB） */
+      loadSupabase().then(function (sb) {
+        return sb.from("feedback").insert({
           content: content,
           contact: contactEl.value.trim() || null,
           relationship: relEl.value,
@@ -817,20 +1183,20 @@
           device_info: collectDeviceInfo(),
           lang: htmlEl.getAttribute("lang") === "en" ? "en" : "zh",
           page: "home"
-        })
-        .then(function (res) {
-          restore();
-          if (res.error) { setStatus("error", d["feedback.error"]); return; }
-          setStatus("success", d["feedback.success"]);
-          form.reset();
-          deviceEl.value = detectDeviceType();
-          fadeTimer = setTimeout(function () {
-            statusEl.style.opacity = "0";
-          }, 5000);
-        }, function () {
-          restore();
-          setStatus("error", d["feedback.error"]);
         });
+      }).then(function (res) {
+        restore();
+        if (!res || res.error) { setStatus("error", d["feedback.error"]); return; }
+        setStatus("success", d["feedback.success"]);
+        form.reset();
+        deviceEl.value = detectDeviceType();
+        fadeTimer = setTimeout(function () {
+          statusEl.style.opacity = "0";
+        }, 5000);
+      }, function () {
+        restore();
+        setStatus("error", d["feedback.error"]);
+      });
     });
   }
 

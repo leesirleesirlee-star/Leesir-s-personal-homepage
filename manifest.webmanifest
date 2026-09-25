@@ -1,0 +1,15 @@
+{
+  "name": "Nick Lee 李泽毓 · Personal Homepage",
+  "short_name": "Nick Lee",
+  "description": "计算机科学学生 · 探索 AI、数学与金融",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FAF9F6",
+  "theme_color": "#FAF9F6",
+  "icons": [
+    { "src": "assets/img/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/img/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

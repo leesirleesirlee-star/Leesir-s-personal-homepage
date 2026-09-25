@@ -167,6 +167,7 @@
 - `docs/digital-resin.md` — Digital Resin 项目素材（V2 详情数据来源）。
 - `docs/v3-design.md` — **V3 设计 + 实现证据记录（当前有效主文档）**，含 §9 五轮计划、§10 逐轮回填。
 - `docs/v3-supabase-setup.sql` — Supabase 一键初始化（幂等）+ §8 R2.5 迁移段。
+- `docs/v4-design.md` — **V4 设计 + 15 项反馈决策表 + 验证证据（当前有效主文档）**。
 
 ---
 
@@ -188,7 +189,7 @@
 | R2 Feedback 前端（导航第5项 + 表单 + supabase-js 本地化） | ✅ 2026-09-17（真实提交验收通过） |
 | R2.5 关系+设备字段（关系必选枚举 / 设备自动预选 + device_info 采集） | ✅ 2026-09-17（三列落库实测） |
 | R4 双平台部署（含 git 历史清理 + 11 项敏感终审） | ✅ 2026-09-17（双站回归全绿） |
-| **R3 互动数据**（views/likes 激活 modal `—` 占位 + 项目留言区 UI） | ⬜ 下次开工 |
+| **R3 互动数据**（views/likes 激活 modal `—` 占位 + 项目留言区 UI） | ✅ 2026-09-25（V4 口径：互动数据 + 反馈驱动修复 + 液态玻璃增强，见 §13；待真机验收） |
 | R5 测试收尾（≥3 人测试 + 反馈分类 + 证据 + tag `v3.0`） | ⬜ R3 之后 |
 
 **V3 新增工具与流程教训**：
@@ -197,3 +198,43 @@
 7. **CSS 变量引用必须验证已定义**：本项目设计系统无 `--space-*/--text-xs/--leading-normal/--text-muted` 等变量，间距字号用具体值，文字色只有 `--text` / `--text-secondary`。
 8. **本机代理会间歇性阻断 curl 到 Supabase**（fake-IP 198.18.x.x）：验证 API 失败时先分辨是服务端还是本地代理问题；浏览器链路通常正常。
 9. **Supabase 验证插入用"不返回行"模式**：带 `Prefer: return=representation` 会触发 SELECT 权限检查被 RLS 拦（401 属预期，恰证明防读策略生效）。
+
+---
+
+## 13. V4 轮次（2026-09-25）— R3 互动数据 + 反馈驱动修复 + 液态玻璃增强
+
+**口径**：用户称 "V4"（= PRD V3 流程中的 R3 + 一轮反馈修复）。设计文档：`docs/v4-design.md`（含 15 项反馈决策表）。
+
+**已实施**：
+1. **R3 互动数据**：模态内浏览量（打开计数，sessionStorage 防重）、喜爱（单向点赞，localStorage 防重）、留言（昵称+内容，50 条倒序，honeypot + 30s 限频，escapeHtml 防 XSS）。
+2. **三件事**：44px 触控热区（伪元素扩展，视觉不变）+ `:focus-visible`/`:active` 反馈；表单对比度 3:1（`--input-*` token）；PWA（favicon.svg / icon-192/512 / apple-touch-icon / manifest / 双色 theme-color / OG 1200×630 / sitemap / robots）+ Supabase 按需加载（`loadSupabase()`，首屏省 218KB）。
+3. **附带**：深色头像不反相（白框保留）、中文「聊天」、版本提示 V4（`?v=4.0.0` + footer；V4.1 起资源版本 4.1.0、footer 仍 V4）、head 内联防闪白脚本、安全区、`aria-current`、头像切片 `avatar-112.jpg`（省 3×130KB）。
+4. **液态玻璃增强**：`--glass-bg` 折射渐变 + 四边高光 + 材质分层（卡片/输入框停用实时模糊，视觉等价省采样）+ `prefers-reduced-transparency` 回退；导航遮罩加深已回退。
+
+**待用户验收**：双站真机（打开项目详情看浏览 +1 / 点赞 / 留言；深色切换；移动端触控）。
+
+**V4 新增工具教训**：
+10. **本会话工具对超长单次输出会静默截断**（Write/Bash heredoc 长内容 JSON 解析失败；≈60 行以内稳定）：长文件改动改用「小步 edit + python 精确替换」分片执行。
+11. **edit 偶发 `DEEPWORKS_FILE_WRITE_LOCK_TIMEOUT`**：瞬时锁超时，改用 `python3 <<'PY'` heredoc 直接读写文件可绕过。
+12. **`background` 简写会清空 `background-image`**：对 `.fb-select` 这类带背景图的元素覆盖时用 `background-color`；`--glass-bg` 已升级为「渐变+色」多背景。
+13. **qlmanage 渲染 SVG 输出正方形缩略图**（1200×630 → 1200×1200 带白边）：用 `sips -c 630 1200` 中心裁切；sips 本机**不能写 WebP**（`Can't write format`）。
+
+---
+
+### 13.1 V4.1 追加（验收期间新增需求）：项目进程 Timeline
+
+**需求**：在 Projects 板块加入时间线 UI 展示项目进程（参考 namethatui.com/web/timeline），要求更清晰整洁、更具设计感。澄清结论：① 位置 = **板块总览**（不进详情弹窗即可见）；② 时间信息 = **阶段编号 + 状态标签**（不虚构日期）。
+
+**已实施**：
+1. **结构**：`index.html` Projects 板块卡片列表下方新增 `.timeline-block`（eyebrow/title/lead + `<ol id="timeline">`，`aria-labelledby` 关联区块标题）。
+2. **数据**：`main.js` 新增 `TIMELINE` 数组（双语 5 阶段：01 分子建模与能量计算 / 02 孔隙结构与扩散映射 / 03 扩散-吸附数值模拟 已完成 → 04 MVP 收尾 进行中 → 05 后续扩展 规划中；内容取 `docs/digital-resin.md`，与模态 done/next/future 互补不重复）；`renderTimeline()` 由 `applyLang()` 调用（首屏 + 切换语言共用）；i18n 新增 7 键（zh/en 对称，各 127）。
+3. **规范落实**（namethatui）：`<ol>` 语义；每项自拥「圆点 → 下一圆点」连接线段、止于最后圆点无拖尾；实心点 = 已完成、呼吸空心点 = 进行中、描边空心点 = 规划中；进行中 → 规划中段用虚线；阶段编号列固定宽作对侧内容。
+4. **动画/降级**：`initReveal` 重构为「模块级观察器 + `observeRevealNodes()` 动态登记」（动态 `.reveal` 节点不再漏观察；IO 不可用直接显现）；逐项错峰 0.07s；`prefers-reduced-motion` 关闭呼吸与延迟。
+5. **样式**：`styles.css` 新增 V4-12 区块（浅/深变量、768px/560px 两级响应式）；卡片沿用预合成材质，不破坏 V4-11 材质分层。
+6. **版本**：`index.html` 资源引用 `?v=4.0.0 → 4.1.0`；footer 版本提示保持 V4。
+
+**验证**：jsc 语法 ✅（仅预期 document 错误）；i18n HTML 93 ↔ zh/en 127 对称、无缺失 ✅；Timeline 类名/id 一致 ✅；本地资源 index/css/js 全 200 ✅；真机视觉 ⏳ 待用户验收（DeepWorks Browser 已打开 `#projects`）。
+
+**V4.1 新增工具教训**：
+14. **页面级动态内容先想「谁观察它」**：入场动画依赖 `.reveal` + IntersectionObserver；JS 动态渲染的节点带 `.reveal` 而未经登记会永久 `opacity: 0`——动态渲染后必须调用 `observeRevealNodes()` 登记。
+15. **时间轴几何用变量收口**：dot 中心（`--tl-dot-y`）与轴心 x（`--tl-phase-w + --tl-axis-w/2`）必须由同一组变量推导，否则窄屏改列宽时圆点与连接线错位。
