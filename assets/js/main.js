@@ -1088,6 +1088,8 @@
   }
 
   /* ---------- 5d. 视图切换（Info / Chat，仿 ChatGPT 顶部切换） ---------- */
+  var syncViewIndicators = null; /* 由 initViewSwitch 注入：滑块同步器 */
+
   function setView(view) {
     if (view !== "info" && view !== "chat") return;
     document.body.setAttribute("data-view", view);
@@ -1098,6 +1100,7 @@
       btns[i].classList.toggle("active", on);
       btns[i].setAttribute("aria-selected", on ? "true" : "false");
     }
+    if (syncViewIndicators) syncViewIndicators(false);
 
     /* 切视图前关掉打开中的模态与移动端菜单，避免浮层残留 */
     if (openProjectId) closeProjectModal();
@@ -1121,11 +1124,55 @@
   }
 
   function initViewSwitch() {
+    /* 滑块工厂：每个 .view-switch（桌面导航 + 移动菜单）注入一个指示器 */
+    var recs = [];
+    var switches = document.querySelectorAll(".view-switch");
+    for (var s = 0; s < switches.length; s++) {
+      var box = switches[s];
+      var ind = document.createElement("span");
+      ind.className = "view-indicator";
+      ind.setAttribute("aria-hidden", "true");
+      box.appendChild(ind);
+      recs.push({ box: box, ind: ind });
+    }
+
+    function place(rec, btn, instant) {
+      var ind = rec.ind;
+      if (!btn || !ind) return;
+      if (instant) ind.classList.add("no-anim");
+      ind.style.width = btn.offsetWidth + "px";
+      ind.style.transform = "translateX(" + btn.offsetLeft + "px)";
+      if (instant) { void ind.offsetWidth; ind.classList.remove("no-anim"); }
+      ind.classList.add("on");
+    }
+
+    function syncAll(instant) {
+      var view = document.body.getAttribute("data-view") || "info";
+      for (var i = 0; i < recs.length; i++) {
+        var btn = recs[i].box.querySelector('.view-switch-btn[data-view-target="' + view + '"]');
+        place(recs[i], btn, instant);
+      }
+    }
+    syncViewIndicators = syncAll;
+    syncAll(true); /* 首屏就地落在「信息」上，不从边缘滑入 */
+
     var btns = document.querySelectorAll(".view-switch-btn");
     for (var i = 0; i < btns.length; i++) {
       btns[i].addEventListener("click", function () {
         setView(this.getAttribute("data-view-target"));
       });
+    }
+
+    /* 缩放 / 切换语言后瞬时重测量（按钮宽度随文案变化） */
+    if (window.ResizeObserver) {
+      var vsRO = new ResizeObserver(function () { syncAll(true); });
+      for (var r = 0; r < recs.length; r++) {
+        vsRO.observe(recs[r].box);
+        var b2 = recs[r].box.querySelectorAll(".view-switch-btn");
+        for (var b = 0; b < b2.length; b++) vsRO.observe(b2[b]);
+      }
+    } else {
+      window.addEventListener("resize", function () { syncAll(true); });
     }
 
     /* chat 视图下点 logo：先回到信息页 */

@@ -266,3 +266,5 @@
 **V5.2 修复（2026-09-29）**：用户指出侧卡倒影不随透视收缩——根因是 `will-change: opacity` 触发 grouping 压平 `preserve-3d`；修复：卡片 opacity 恒 1 + 淡入移至子元素（`--gf-fade` var）+ `transition-delay: inherit` 传错峰，JS 零改动，版本 5.2.0，详见 `v5-design.md` §11.2。
 
 **V5.3 追加（2026-09-29）**：顶栏滚动高亮（scroll spy 蓝底胶囊）改为**滑动指示器**——蓝底从 `.nav-links a.active` 抽出为独立 `.nav-indicator` 滑块（容器 relative + 文字 z-index:1），`setActive` 时 JS 测量目标 `offsetLeft/offsetWidth` 平移滑块（380ms CubicInOut）；首次出现就地淡入（`no-anim` 防从边缘滑入）、滚回顶部淡出、ResizeObserver 在缩放/切换语言后瞬时重测量；reduced-motion 降级。版本 5.3.0。
+
+**V5.4 追加（2026-09-29）**：①「信息/聊天」视图切换补同款滑块（`.view-indicator`，工厂函数给桌面导航 + 移动菜单两处实例共用；`setView` 经 `syncViewIndicators` 钩子同步；首屏就地落位，RO 随缩放/语言切换重测）；② 滑块提速更跟手：380ms → **220ms**，缓动换 `cubic-bezier(0.3,0.7,0.3,1)`，opacity 140ms。版本 5.4.0。
