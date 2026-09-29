@@ -268,3 +268,5 @@
 **V5.3 追加（2026-09-29）**：顶栏滚动高亮（scroll spy 蓝底胶囊）改为**滑动指示器**——蓝底从 `.nav-links a.active` 抽出为独立 `.nav-indicator` 滑块（容器 relative + 文字 z-index:1），`setActive` 时 JS 测量目标 `offsetLeft/offsetWidth` 平移滑块（380ms CubicInOut）；首次出现就地淡入（`no-anim` 防从边缘滑入）、滚回顶部淡出、ResizeObserver 在缩放/切换语言后瞬时重测量；reduced-motion 降级。版本 5.3.0。
 
 **V5.4 追加（2026-09-29）**：①「信息/聊天」视图切换补同款滑块（`.view-indicator`，工厂函数给桌面导航 + 移动菜单两处实例共用；`setView` 经 `syncViewIndicators` 钩子同步；首屏就地落位，RO 随缩放/语言切换重测）；② 滑块提速更跟手：380ms → **220ms**，缓动换 `cubic-bezier(0.3,0.7,0.3,1)`，opacity 140ms。版本 5.4.0。
+
+**V5.5 手机端优化（2026-09-29）**：用户反馈移动菜单里的滑块"带旧状态突然出现、点击即消失"很突兀。三件套：① 滑块加**可见性感知状态机**（`shown` 跟踪：菜单关→开时几何就位 + 背景淡入 200ms；开→关时淡出复位，下次打开重新淡入，不再瞬移）；② `setView` 里移动菜单**延迟 240ms 关闭**（滑动先播完；`_closeTimer` 挂在元素上，手动开菜单时清除防竞争）；③ 指示器淡入淡出 140ms → 200ms。版本 5.5.0。

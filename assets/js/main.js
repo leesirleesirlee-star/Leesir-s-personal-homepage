@@ -682,6 +682,11 @@
     if (menuBtn && mobileMenu) {
       function toggleMenu(open) {
         var isOpen = typeof open === "boolean" ? open : !mobileMenu.classList.contains("open");
+        /* 重新打开时取消挂起的延迟关闭，防边界竞争 */
+        if (isOpen && mobileMenu._closeTimer) {
+          clearTimeout(mobileMenu._closeTimer);
+          mobileMenu._closeTimer = null;
+        }
         mobileMenu.classList.toggle("open", isOpen);
         menuBtn.classList.toggle("open", isOpen);
         menuBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
@@ -1108,13 +1113,19 @@
     var mobileMenu = document.getElementById("mobile-menu");
     var menuBtn = document.getElementById("menu-btn");
     if (mobileMenu && mobileMenu.classList.contains("open")) {
-      mobileMenu.classList.remove("open");
-      mobileMenu.setAttribute("aria-hidden", "true");
-      if (menuBtn) {
-        menuBtn.classList.remove("open");
-        menuBtn.setAttribute("aria-expanded", "false");
-      }
-      document.body.style.overflow = "";
+      /* 手机端：延迟 240ms 再关菜单，让滑块滑动先播完，而非"点击即消失" */
+      clearTimeout(mobileMenu._closeTimer);
+      mobileMenu._closeTimer = setTimeout(function () {
+        mobileMenu._closeTimer = null;
+        if (!mobileMenu.classList.contains("open")) return; /* 期间被手动关闭则跳过 */
+        mobileMenu.classList.remove("open");
+        mobileMenu.setAttribute("aria-hidden", "true");
+        if (menuBtn) {
+          menuBtn.classList.remove("open");
+          menuBtn.setAttribute("aria-expanded", "false");
+        }
+        document.body.style.overflow = "";
+      }, 240);
     }
 
     /* 立即回顶（绕过 CSS smooth，避免切视图后停在原滚动位置） */
@@ -1133,28 +1144,47 @@
       ind.className = "view-indicator";
       ind.setAttribute("aria-hidden", "true");
       box.appendChild(ind);
-      recs.push({ box: box, ind: ind });
+      recs.push({ box: box, ind: ind, shown: false });
     }
 
-    function place(rec, btn, instant) {
-      var ind = rec.ind;
-      if (!btn || !ind) return;
-      if (instant) ind.classList.add("no-anim");
-      ind.style.width = btn.offsetWidth + "px";
-      ind.style.transform = "translateX(" + btn.offsetLeft + "px)";
-      if (instant) { void ind.offsetWidth; ind.classList.remove("no-anim"); }
-      ind.classList.add("on");
+    function setGeometry(rec, btn) {
+      rec.ind.style.width = btn.offsetWidth + "px";
+      rec.ind.style.transform = "translateX(" + btn.offsetLeft + "px)";
     }
 
-    function syncAll(instant) {
+    /* 点击切换：平滑滑动到目标档（配合菜单延迟关闭，滑动可见） */
+    function syncAll() {
       var view = document.body.getAttribute("data-view") || "info";
       for (var i = 0; i < recs.length; i++) {
-        var btn = recs[i].box.querySelector('.view-switch-btn[data-view-target="' + view + '"]');
-        place(recs[i], btn, instant);
+        var rec = recs[i];
+        var btn = rec.box.querySelector('.view-switch-btn[data-view-target="' + view + '"]');
+        if (!btn) continue;
+        setGeometry(rec, btn);
+        rec.ind.classList.add("on");
+        rec.shown = true;
       }
     }
     syncViewIndicators = syncAll;
-    syncAll(true); /* 首屏就地落在「信息」上，不从边缘滑入 */
+
+    /* 可见性感知（手机端优化）：菜单关→开时几何就位 + 背景淡入，
+       不再带着旧状态突然出现；开→关时淡出复位，下次打开重新淡入 */
+    function syncVisible() {
+      var view = document.body.getAttribute("data-view") || "info";
+      for (var i = 0; i < recs.length; i++) {
+        var rec = recs[i];
+        var btn = rec.box.querySelector('.view-switch-btn[data-view-target="' + view + '"]');
+        if (!btn || btn.offsetWidth === 0) {
+          if (rec.shown) { rec.ind.classList.remove("on"); rec.shown = false; }
+          continue;
+        }
+        rec.ind.classList.add("no-anim");
+        setGeometry(rec, btn);
+        void rec.ind.offsetWidth;
+        rec.ind.classList.remove("no-anim");
+        if (!rec.shown) { rec.ind.classList.add("on"); rec.shown = true; }
+      }
+    }
+    syncVisible();
 
     var btns = document.querySelectorAll(".view-switch-btn");
     for (var i = 0; i < btns.length; i++) {
@@ -1163,16 +1193,16 @@
       });
     }
 
-    /* 缩放 / 切换语言后瞬时重测量（按钮宽度随文案变化） */
+    /* 缩放 / 切换语言 / 菜单开合 → 可见性感知重测 */
     if (window.ResizeObserver) {
-      var vsRO = new ResizeObserver(function () { syncAll(true); });
+      var vsRO = new ResizeObserver(function () { syncVisible(); });
       for (var r = 0; r < recs.length; r++) {
         vsRO.observe(recs[r].box);
         var b2 = recs[r].box.querySelectorAll(".view-switch-btn");
         for (var b = 0; b < b2.length; b++) vsRO.observe(b2[b]);
       }
     } else {
-      window.addEventListener("resize", function () { syncAll(true); });
+      window.addEventListener("resize", function () { syncVisible(); });
     }
 
     /* chat 视图下点 logo：先回到信息页 */
