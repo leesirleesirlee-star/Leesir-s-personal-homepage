@@ -264,3 +264,5 @@
 **V5.1 反馈迭代（2026-09-29）**：用户指出倒影立体感不足——倒影升级为"地面透视反射"（`rotateX(32deg)` 铺向观者、近宽远窄）+ 接触缘加亮拉长（52%）+ 舞台中央光池；仅 CSS 变更，版本 5.1.0，详见 `v5-design.md` §11.1。
 
 **V5.2 修复（2026-09-29）**：用户指出侧卡倒影不随透视收缩——根因是 `will-change: opacity` 触发 grouping 压平 `preserve-3d`；修复：卡片 opacity 恒 1 + 淡入移至子元素（`--gf-fade` var）+ `transition-delay: inherit` 传错峰，JS 零改动，版本 5.2.0，详见 `v5-design.md` §11.2。
+
+**V5.3 追加（2026-09-29）**：顶栏滚动高亮（scroll spy 蓝底胶囊）改为**滑动指示器**——蓝底从 `.nav-links a.active` 抽出为独立 `.nav-indicator` 滑块（容器 relative + 文字 z-index:1），`setActive` 时 JS 测量目标 `offsetLeft/offsetWidth` 平移滑块（380ms CubicInOut）；首次出现就地淡入（`no-anim` 防从边缘滑入）、滚回顶部淡出、ResizeObserver 在缩放/切换语言后瞬时重测量；reduced-motion 降级。版本 5.3.0。

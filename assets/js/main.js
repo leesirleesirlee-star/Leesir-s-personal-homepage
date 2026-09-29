@@ -708,18 +708,60 @@
       { id: "contact", el: document.getElementById("contact") },
       { id: "feedback", el: document.getElementById("feedback") }
     ];
+    // 滑动指示器：蓝底胶囊抽为独立滑块，切页时平滑滑动（而非消失再现）
+    var navLinksBox = document.querySelector(".nav-links");
+    var indicator = null;
+    var indicatorOn = false;
+    if (navLinksBox) {
+      indicator = document.createElement("span");
+      indicator.className = "nav-indicator";
+      indicator.setAttribute("aria-hidden", "true");
+      navLinksBox.appendChild(indicator);
+    }
+    function moveIndicator(link, instant) {
+      if (!indicator || !link) return;
+      if (instant) indicator.classList.add("no-anim");
+      indicator.style.width = link.offsetWidth + "px";
+      indicator.style.transform = "translateX(" + link.offsetLeft + "px)";
+      if (instant) { void indicator.offsetWidth; indicator.classList.remove("no-anim"); }
+      indicator.classList.add("on");
+      indicatorOn = true;
+    }
+    function hideIndicator() {
+      if (!indicator) return;
+      indicator.classList.remove("on");
+      indicatorOn = false;
+    }
+    function repositionIndicator() {
+      if (!indicator || !navLinksBox) return;
+      var act = navLinksBox.querySelector("a.active");
+      if (act) moveIndicator(act, true); /* 缩放/切换语言后瞬时重测量 */
+    }
+    if (indicator) {
+      if (window.ResizeObserver) {
+        var navRO = new ResizeObserver(repositionIndicator);
+        navRO.observe(navLinksBox);
+        for (var r = 0; r < links.length; r++) navRO.observe(links[r]);
+      } else {
+        window.addEventListener("resize", repositionIndicator);
+      }
+    }
+
     function clearActive() {
       for (var a = 0; a < links.length; a++) {
         links[a].classList.remove("active");
         links[a].removeAttribute("aria-current");
       }
+      hideIndicator();
     }
     function setActive(id) {
+      var wasOn = indicatorOn; /* 首次出现就地淡入，其后平滑滑动 */
       clearActive();
       for (var a = 0; a < links.length; a++) {
         if (links[a].getAttribute("href") === "#" + id) {
           links[a].classList.add("active");
           links[a].setAttribute("aria-current", "true");
+          moveIndicator(links[a], !wasOn);
         }
       }
     }
