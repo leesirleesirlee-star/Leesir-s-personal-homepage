@@ -98,7 +98,11 @@
       "learning.i4.title": "规划成长",
       "learning.i4.desc": "升学规划、履历打磨、效率工具研究。",
       "learning.i5.title": "摄影",
-      "learning.i5.desc": "热爱影像记录与光影表达，后期将上传个人作品，制作线上画展。",
+      "learning.i5.desc": "热爱影像记录与光影表达——9 幅个人作品已上线，点击走进线上画展。",
+      "gallery.entry": "进入画展 →",
+      "gallery.title": "光影集 · 线上摄影展",
+      "gallery.hintDesk": "滚轮 / ← → 翻页 · 点击侧卡聚焦 · 点击中央看大图",
+      "gallery.hintTouch": "左右滑动翻页 · 轻点中央看大图",
       "view.info": "信息",
       "view.chat": "聊天",
       "chat.greeting": "你好！我是 Nick 的数字分身。关于我的学业、科研与项目，想了解的都可以问我。",
@@ -147,7 +151,7 @@
       "feedback.error": "提交失败，请检查网络后重试。",
       "feedback.empty": "请先填写反馈内容。",
 
-      "footer.text": "© 2026 Nick Lee · V4"
+      "footer.text": "© 2026 Nick Lee · V5"
     },
 
     en: {
@@ -237,7 +241,11 @@
       "learning.i4.title": "Growth Planning",
       "learning.i4.desc": "Academic planning, portfolio building, and productivity tools.",
       "learning.i5.title": "Photography",
-      "learning.i5.desc": "Passionate about visual storytelling and light — personal works and an online gallery coming soon.",
+      "learning.i5.desc": "Passionate about visual storytelling and light — 9 personal works now live. Step into the online gallery.",
+      "gallery.entry": "Enter the gallery →",
+      "gallery.title": "Light & Shadow · Online Photography Exhibition",
+      "gallery.hintDesk": "Scroll / ← → to browse · Click a side card to focus · Click center to enlarge",
+      "gallery.hintTouch": "Swipe to browse · Tap center to enlarge",
       "view.info": "Info",
       "view.chat": "Chat",
       "chat.greeting": "Hi! I'm Nick's digital twin. Ask me anything about my studies, research, or projects.",
@@ -286,7 +294,7 @@
       "feedback.error": "Submission failed — please check your connection and try again.",
       "feedback.empty": "Please write your feedback first.",
 
-      "footer.text": "© 2026 Nick Lee · V4"
+      "footer.text": "© 2026 Nick Lee · V5"
     }
   };
 

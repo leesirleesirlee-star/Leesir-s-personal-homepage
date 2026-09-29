@@ -19,7 +19,7 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="assets/css/styles.css?v=4.1.0">
+  <link rel="stylesheet" href="assets/css/styles.css?v=5.2.0">
 
   <!-- App 化基础（V4）：favicon / 主屏图标 / 安装清单 / 主题色 -->
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
@@ -237,9 +237,10 @@
             <h3 data-i18n="learning.i4.title">规划成长</h3>
             <p data-i18n="learning.i4.desc">升学规划、履历打磨、效率工具研究。</p>
           </div>
-          <div class="interest-card reveal">
+          <div class="interest-card reveal interest-card--gallery" data-gallery-open role="button" tabindex="0" aria-haspopup="dialog">
             <h3 data-i18n="learning.i5.title">摄影</h3>
-            <p data-i18n="learning.i5.desc">热爱影像记录与光影表达，后期将上传个人作品，制作线上画展。</p>
+            <p data-i18n="learning.i5.desc">热爱影像记录与光影表达——9 幅个人作品已上线，点击走进线上画展。</p>
+            <span class="gallery-entry-hint" data-i18n="gallery.entry">进入画展 →</span>
           </div>
         </div>
       </div>
@@ -394,8 +395,25 @@
 
   <!-- ============ Footer ============ -->
   <footer class="footer">
-    <p data-i18n="footer.text">© 2026 Nick Lee · V4</p>
+    <p data-i18n="footer.text">© 2026 Nick Lee · V5</p>
   </footer>
+
+  <!-- ============ Photography Gallery (V5 · Cover Flow) ============ -->
+  <div class="gallery-overlay" id="gallery-overlay" aria-hidden="true">
+    <div class="gallery-stage" role="dialog" aria-modal="true" aria-labelledby="gallery-title">
+      <p class="gallery-title" id="gallery-title" data-i18n="gallery.title">光影集 · 线上摄影展</p>
+      <button class="gallery-close" id="gallery-close" type="button" aria-label="关闭画廊">×</button>
+      <div class="gallery-flow" id="gallery-flow"><!-- Cover Flow 卡片由 coverflow.js 渲染 --></div>
+      <div class="gallery-foot">
+        <p class="gallery-counter" id="gallery-counter" aria-live="polite">01 / 09</p>
+        <p class="gallery-hint gallery-hint--desk" data-i18n="gallery.hintDesk">滚轮 / ← → 翻页 · 点击侧卡聚焦 · 点击中央看大图</p>
+        <p class="gallery-hint gallery-hint--touch" data-i18n="gallery.hintTouch">左右滑动翻页 · 轻点中央看大图</p>
+      </div>
+    </div>
+    <div class="gallery-lightbox" id="gallery-lightbox" aria-hidden="true">
+      <img class="gallery-lightbox-img" id="gallery-lightbox-img" alt="" decoding="async">
+    </div>
+  </div>
 
   <!-- ============ Project Detail Modal (V2) ============ -->
   <div class="modal-overlay" id="project-modal" aria-hidden="true">
@@ -413,6 +431,7 @@
   </button>
 
   <!-- supabase-js 按需加载（V4）：首屏不加载，打开项目详情 / 提交反馈时动态引入 -->
-  <script src="assets/js/main.js?v=4.1.0"></script>
+  <script src="assets/js/main.js?v=5.2.0"></script>
+  <script src="assets/js/coverflow.js?v=5.2.0"></script>
 </body>
 </html>

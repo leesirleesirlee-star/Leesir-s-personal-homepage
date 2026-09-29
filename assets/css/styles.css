@@ -2282,3 +2282,267 @@ button.stat {
   .timeline-item:nth-child(n) { transition-delay: 0s; }
   .timeline-item--current .timeline-dot { animation: none; }
 }
+
+/* ============================== V5 · 摄影展画廊（Cover Flow） ============================== */
+
+/* ---- 入口卡片 ---- */
+.interest-card--gallery { cursor: pointer; }
+.gallery-entry-hint {
+  display: block;
+  margin-top: 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent);
+  transition: color 0.2s ease;
+}
+.interest-card--gallery:hover .gallery-entry-hint { color: var(--accent-hover); }
+.interest-card--gallery:active { transform: scale(0.985); }
+
+/* ---- 幕布层（恒定深色展厅，独立于全站主题） ---- */
+.gallery-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: radial-gradient(120% 90% at 50% 32%, #121826 0%, #0a0d13 58%, #05070a 100%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 420ms cubic-bezier(0.65, 0, 0.35, 1), visibility 0s linear 420ms;
+}
+.gallery-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+.gallery-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+.gallery-title {
+  margin-top: calc(env(safe-area-inset-top, 0px) + 22px);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: rgba(240, 244, 250, 0.78);
+  text-transform: uppercase;
+  text-align: center;
+  padding: 0 56px;
+}
+
+.gallery-close {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  right: 14px;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(240, 244, 250, 0.85);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.gallery-close:hover { background: rgba(255, 255, 255, 0.12); }
+.gallery-close:active { transform: scale(0.92); }
+
+/* ---- Cover Flow 舞台 ---- */
+.gallery-flow {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  perspective: 1000px;
+  perspective-origin: 50% 46%;
+}
+
+.gf-card {
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  width: min(46vw, 300px);
+  aspect-ratio: 3 / 4;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  transform-style: preserve-3d;
+  transition: transform 400ms cubic-bezier(0.65, 0, 0.35, 1);
+  will-change: transform;
+  cursor: pointer;
+}
+/* 淡入放在子元素：卡片自身的 opacity（含 will-change: opacity）会触发
+   grouping 规则、强制压平 preserve-3d——那正是"倒影失去透视收缩"的根因 */
+.gf-card.live { --gf-fade: 1; }
+
+.gf-photo {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #141a24;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 4px 14px rgba(0, 0, 0, 0.4);
+  opacity: var(--gf-fade, 0);
+  filter: brightness(var(--gf-dim, 1));
+  transition: opacity 400ms cubic-bezier(0.65, 0, 0.35, 1), filter 400ms cubic-bezier(0.65, 0, 0.35, 1);
+  transition-delay: inherit; /* 入场错峰：继承卡片上的 inline delay */
+}
+.gf-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* 镜像倒影：伪元素镜像 + 地面透视（glossy floor）
+   rotateX(+) 以卡片底边为轴把倒影平面"铺"向观者——近宽远窄，立体地面感；
+   倒影位于卡片 3D 变换内部，随每张卡的 rotateY/位移/亮度实时同步 */
+.gf-reflection {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: 52%;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: 0 0 10px 10px;
+  opacity: calc(0.62 * var(--gf-fade, 0));
+  transform-origin: top center;
+  transform: rotateX(32deg);
+  transition: opacity 400ms cubic-bezier(0.65, 0, 0.35, 1);
+  transition-delay: inherit;
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.25) 45%, transparent 70%);
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.25) 45%, transparent 70%);
+}
+.gf-reflection img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  height: auto;
+  object-fit: cover;
+  display: block;
+  transform: scaleY(-1);
+  transform-origin: top;
+  filter: brightness(var(--gf-dim, 1));
+}
+
+/* 中央光池：展厅射灯在地面上的光斑（当前卡恒在中央，光池随之归属） */
+.gallery-flow::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 3%;
+  width: min(72vw, 620px);
+  height: 150px;
+  transform: translateX(-50%);
+  background: radial-gradient(50% 50% at 50% 50%,
+    rgba(132, 162, 220, 0.11) 0%,
+    rgba(132, 162, 220, 0.04) 52%,
+    transparent 76%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ---- 底部信息 ---- */
+.gallery-foot {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+  left: 0;
+  right: 0;
+  text-align: center;
+  pointer-events: none;
+}
+.gallery-counter {
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  color: rgba(240, 244, 250, 0.88);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 8px;
+}
+.gallery-hint {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: rgba(240, 244, 250, 0.4);
+  padding: 0 24px;
+}
+.gallery-hint--touch { display: none; }
+@media (hover: none) and (pointer: coarse) {
+  .gallery-hint--desk { display: none; }
+  .gallery-hint--touch { display: block; }
+}
+
+/* ---- 大图查看（lightbox，无信息层） ---- */
+.gallery-lightbox {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(env(safe-area-inset-top, 0px), 20px) 16px max(env(safe-area-inset-bottom, 0px), 20px);
+  background: rgba(3, 5, 8, 0.93);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 260ms ease, visibility 0s linear 260ms;
+  cursor: zoom-out;
+}
+.gallery-lightbox.open {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+.gallery-lightbox-img {
+  max-width: 92vw;
+  max-height: 86vh;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 32px 90px rgba(0, 0, 0, 0.65);
+}
+
+/* ---- V5 响应式 ---- */
+@media (max-width: 768px) {
+  .gf-card { width: min(52vw, 260px); }
+  .gallery-flow { perspective-origin: 50% 42%; }
+  .gf-reflection { height: 44%; opacity: 0.55; transform: rotateX(30deg); }
+  .gallery-flow::before { width: 86vw; height: 110px; bottom: 1%; }
+  .gallery-title { font-size: 11.5px; letter-spacing: 0.18em; }
+  .gallery-counter { font-size: 12px; }
+}
+
+@media (max-width: 560px) {
+  .gf-card { width: 56vw; }
+  .gallery-foot { bottom: calc(env(safe-area-inset-bottom, 0px) + 14px); }
+  .gallery-hint { font-size: 11px; }
+}
+
+/* ---- 边界回弹（到头反馈，不循环） ---- */
+@keyframes gf-bump-left {
+  0% { transform: translateX(0); }
+  35% { transform: translateX(16px); }
+  100% { transform: translateX(0); }
+}
+@keyframes gf-bump-right {
+  0% { transform: translateX(0); }
+  35% { transform: translateX(-16px); }
+  100% { transform: translateX(0); }
+}
+.gallery-flow.bump-left { animation: gf-bump-left 280ms ease; }
+.gallery-flow.bump-right { animation: gf-bump-right 280ms ease; }
+
+/* ---- V5 动效降级 ---- */
+@media (prefers-reduced-motion: reduce) {
+  .gallery-overlay,
+  .gallery-lightbox { transition: opacity 200ms ease, visibility 0s linear 200ms; }
+  .gf-card { transition: none; }
+  .gf-photo { transition: opacity 200ms ease; transition-delay: inherit; }
+  .gf-reflection { transition: opacity 200ms ease; transition-delay: inherit; }
+  .gf-reflection img { transition: none; }
+  .interest-card--gallery:active { transform: none; }
+}
