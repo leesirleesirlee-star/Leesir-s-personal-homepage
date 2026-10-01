@@ -888,6 +888,34 @@ section {
   padding-left: 12px;
 }
 
+/* V5.6: 邮箱复制按钮复用 .contact-item 布局——重置 button 默认样式，视觉与链接条目一致 */
+button.contact-item {
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--divider);
+  border-radius: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 22px 4px;
+}
+
+button.contact-item:hover {
+  padding-left: 12px;
+}
+
+.contact-item.copied .contact-value {
+  color: var(--text-secondary);
+}
+
+.contact-copy-hint {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
 .contact-label {
   font-size: 15px;
   font-weight: 600;

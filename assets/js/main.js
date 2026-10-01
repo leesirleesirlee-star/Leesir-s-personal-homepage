@@ -121,6 +121,16 @@
       "contact.title": "联系我",
       "contact.lead": "欢迎交流学习、科研合作或任何想法。",
       "contact.email": "邮箱",
+      "contact.copyHint": "点击条目即可复制邮箱地址",
+      "contact.copied": "已复制 ✓",
+
+      "a11y.switchLang": "切换语言",
+      "a11y.toggleTheme": "切换主题",
+      "a11y.menu": "菜单",
+      "a11y.scrollDown": "向下滚动",
+      "a11y.chatSend": "发送",
+      "a11y.galleryClose": "关闭画廊",
+      "a11y.backToTop": "返回顶部",
 
       "feedback.eyebrow": "Feedback",
       "feedback.title": "留言反馈",
@@ -264,6 +274,16 @@
       "contact.title": "Get in Touch",
       "contact.lead": "Feel free to reach out for academic exchange, research collaboration, or any ideas.",
       "contact.email": "Email",
+      "contact.copyHint": "Click the entry to copy the email address",
+      "contact.copied": "Copied ✓",
+
+      "a11y.switchLang": "Switch language",
+      "a11y.toggleTheme": "Toggle theme",
+      "a11y.menu": "Menu",
+      "a11y.scrollDown": "Scroll down",
+      "a11y.chatSend": "Send",
+      "a11y.galleryClose": "Close gallery",
+      "a11y.backToTop": "Back to top",
 
       "feedback.eyebrow": "Feedback",
       "feedback.title": "Leave Feedback",
@@ -553,6 +573,17 @@
     for (var p = 0; p < phNodes.length; p++) {
       var phKey = phNodes[p].getAttribute("data-i18n-ph");
       if (dict[phKey]) phNodes[p].setAttribute("placeholder", dict[phKey]);
+    }
+    /* aria-label 走 data-i18n-aria（读屏文案随语言切换，V5.6） */
+    var ariaNodes = document.querySelectorAll("[data-i18n-aria]");
+    for (var a = 0; a < ariaNodes.length; a++) {
+      var ariaKey = ariaNodes[a].getAttribute("data-i18n-aria");
+      if (dict[ariaKey]) ariaNodes[a].setAttribute("aria-label", dict[ariaKey]);
+    }
+    /* 语言切换时还原"已复制"态，避免上一语言的文案残留（V5.6） */
+    var copyBtns = document.querySelectorAll("[data-copy-email]");
+    for (var c = 0; c < copyBtns.length; c++) {
+      if (typeof copyBtns[c]._restoreCopy === "function") copyBtns[c]._restoreCopy();
     }
     htmlEl.setAttribute("lang", lang === "zh" ? "zh-CN" : "en");
     document.title = lang === "zh"
@@ -910,6 +941,7 @@
         openProjectModal(this.getAttribute("data-project"));
       });
       cards[i].addEventListener("keydown", function (e) {
+        if (e.target.closest("a")) return; // 焦点在内嵌链接上时放行默认跳转（与 click 对称，V5.6）
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           openProjectModal(this.getAttribute("data-project"));
@@ -1244,6 +1276,65 @@
     }
   }
 
+  /* ---------- 5f-2. 邮箱点击复制（V5.6）：明文 mailto 改为 copy-to-clipboard，防爬虫采集 ---------- */
+  function initContactCopy() {
+    var btn = document.getElementById("copy-email");
+    if (!btn) return;
+    var valueEl = btn.querySelector(".contact-value");
+    var email = btn.getAttribute("data-copy-email") || "";
+    var restoreTimer = null;
+
+    function showCopied() {
+      var t = dict();
+      btn.classList.add("copied");
+      if (valueEl && t["contact.copied"]) {
+        if (!valueEl.getAttribute("data-original")) {
+          valueEl.setAttribute("data-original", valueEl.textContent);
+        }
+        valueEl.textContent = t["contact.copied"];
+      }
+      if (restoreTimer) clearTimeout(restoreTimer);
+      restoreTimer = setTimeout(restore, 2000);
+    }
+
+    function restore() {
+      btn.classList.remove("copied");
+      if (valueEl && valueEl.getAttribute("data-original")) {
+        valueEl.textContent = valueEl.getAttribute("data-original");
+        valueEl.removeAttribute("data-original");
+      }
+      restoreTimer = null;
+    }
+
+    btn.addEventListener("click", function () {
+      if (!email) return;
+      function done() { showCopied(); }
+      function fallback() {
+        /* 非安全上下文降级：临时 textarea + execCommand */
+        try {
+          var ta = document.createElement("textarea");
+          ta.value = email;
+          ta.setAttribute("readonly", "");
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          document.body.removeChild(ta);
+          done();
+        } catch (err) {}
+      }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(email).then(done, fallback);
+      } else {
+        fallback();
+      }
+    });
+
+    /* 语言切换时若处于"已复制"态，先还原避免文案残留（applyLang 统一调用） */
+    btn._restoreCopy = restore;
+  }
+
   /* ---------- 5g. Feedback 表单（V3 R2：Supabase 直连，免登录） ---------- */
   function initFeedback() {
     var form = document.getElementById("feedback-form");
@@ -1337,5 +1428,6 @@
   initViewSwitch();
   initBackToTop();
   initChat();
+  initContactCopy();
   initFeedback();
 })();
