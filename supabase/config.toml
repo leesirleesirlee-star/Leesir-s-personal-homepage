@@ -1,0 +1,8 @@
+[edge_runtime]
+policy = "per_worker"
+
+[functions.digital-twin-chat]
+verify_jwt = true
+
+[functions.digital-twin-voice]
+verify_jwt = true

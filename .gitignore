@@ -7,6 +7,9 @@
 # DeepWorks 会话上传目录
 uploads/
 
+# Supabase CLI 本地临时状态
+supabase/.temp/
+
 # 个人敏感材料（仅本地留存，永不入库）
 个人信息陈述.rtf
 Personal Homepage Project 个人主页项目需求书（PRD）.rtf

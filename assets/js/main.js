@@ -50,9 +50,10 @@
       "projects.p1.name": "Digital Resin · 离子交换树脂数字孪生模型",
       "projects.p1.desc": "AI for Science 研究项目：构建离子交换树脂的数字孪生模型——输入树脂参数与运行条件，输出吸附性能预测的虚拟实验。",
       "projects.p2.name": "大学志愿者论坛小程序",
-      "projects.p2.desc": "面向大学志愿者社群的微信小程序，支持提出建议、发布公告等功能，服务志愿活动的组织与沟通。",
+      "projects.p2.desc": "面向大学志愿者社群的微信小程序，已开发完成提出建议与志愿活动公告功能，尚未上线运营。",
       "projects.p2.tag": "微信小程序",
       "projects.status.planning": "筹备中",
+      "projects.status.completed": "已完成",
       "projects.hint": "查看详情",
 
       "timeline.eyebrow": "Roadmap",
@@ -99,7 +100,7 @@
       "learning.i4.desc": "升学规划、履历打磨、效率工具研究。",
       "learning.i5.title": "摄影",
       "learning.i5.desc": "热爱影像记录与光影表达——9 幅个人作品已上线，点击走进线上画展。",
-      "gallery.entry": "进入画展 →",
+      "gallery.entry": "查看摄影画廊",
       "gallery.title": "光影集 · 线上摄影展",
       "gallery.hintDesk": "滚轮 / ← → 翻页 · 点击侧卡聚焦 · 点击中央看大图",
       "gallery.hintTouch": "左右滑动翻页 · 轻点中央看大图",
@@ -109,13 +110,33 @@
       "chat.q1": "Nick 最近在学什么？",
       "chat.a1": "我在夯实计算机与数学的专业基础，同时探索 AI for Science——把机器学习与仿真方法用于真实科学问题（比如 Digital Resin）；课外参与学生工作，也保持着摄影这项长期爱好。",
       "chat.q2": "能介绍一下 Digital Resin 项目吗？",
-      "chat.a2": "当然。Digital Resin 是我的科研项目：为离子交换树脂构建数字孪生模型，用计算机模拟吸附过程，辅助树脂筛选与工艺优化。目前已完成分子建模、结合能计算与一维扩散-吸附模拟，处于 MVP 阶段。完整进展可以在信息页的「项目」板块查看。",
+      "chat.a2": "当然。Digital Resin 是我的科研项目：为离子交换树脂构建数字孪生模型，用计算机模拟吸附过程，辅助树脂筛选与工艺优化。目前已完成分子建模、结合能计算与一维扩散-吸附模拟，处于 MVP 阶段。完整进展可以点击项目卡片，在项目详情中查看。",
       "chat.chipsLabel": "你还可以问",
       "chat.chip1": "如何联系 Nick？",
       "chat.chip2": "Nick 的长期目标是什么？",
       "chat.chip3": "Nick 有哪些兴趣爱好？",
       "chat.placeholder": "向 Nick 提问……",
-      "chat.note": "静态预览 · 对话功能开发中",
+      "chat.note": "基于公开资料回答 · 语音由豆包 ASR / TTS 提供",
+      "chat.thinking": "正在思考……",
+      "chat.textError": "这次没连上，麻烦稍后再试一次。",
+      "chat.voiceFallback": "你仍可以改用文字提问。",
+      "chat.voiceStart": "语音提问",
+      "chat.voiceStop": "结束说话",
+      "chat.voiceConnecting": "正在准备麦克风……",
+      "chat.processing": "正在识别语音并生成回答……",
+      "chat.transcribing": "正在识别…",
+      "chat.voiceReady": "语音已生成，点击下方按钮播放。",
+      "chat.ttsFallback": "语音合成暂时失败，已改为文字回答。",
+      "chat.audioLabel": "数字分身的语音回答",
+      "chat.audioPlay": "播放语音",
+      "chat.audioPause": "暂停播放",
+      "chat.audioFailed": "语音播放失败，请再试一次。",
+      "chat.listening": "正在听，请自然说话；说完点击停止。",
+      "chat.speaking": "正在播报回答……",
+      "chat.voiceError": "语音服务暂时不可用，请改用文字提问。",
+      "chat.voiceUnsupported": "当前浏览器无法使用语音功能，请改用文字提问。",
+      "chat.voiceTooShort": "说话时间太短了，请再试一次。",
+      "chat.noTranscript": "（没有识别到清晰语音）",
 
       "contact.eyebrow": "Contact",
       "contact.title": "联系我",
@@ -129,6 +150,7 @@
       "a11y.menu": "菜单",
       "a11y.scrollDown": "向下滚动",
       "a11y.chatSend": "发送",
+      "a11y.galleryOpen": "查看摄影作品",
       "a11y.galleryClose": "关闭画廊",
       "a11y.backToTop": "返回顶部",
 
@@ -203,9 +225,10 @@
       "projects.p1.name": "Digital Resin · Ion Exchange Resin Digital Twin",
       "projects.p1.desc": "An AI for Science project: a digital twin of ion exchange resin — virtual experiments that predict adsorption performance from resin parameters and operating conditions.",
       "projects.p2.name": "University Volunteer Forum",
-      "projects.p2.desc": "A WeChat mini program for university volunteer communities, featuring suggestion submission and announcement publishing to support volunteer activities.",
+      "projects.p2.desc": "A WeChat mini program for university volunteer communities. Suggestion submission and volunteer announcement features are complete, but it has not yet launched.",
       "projects.p2.tag": "WeChat Mini Program",
       "projects.status.planning": "Planning",
+      "projects.status.completed": "Completed",
       "projects.hint": "View Details",
 
       "timeline.eyebrow": "Roadmap",
@@ -252,7 +275,7 @@
       "learning.i4.desc": "Academic planning, portfolio building, and productivity tools.",
       "learning.i5.title": "Photography",
       "learning.i5.desc": "Passionate about visual storytelling and light — 9 personal works now live. Step into the online gallery.",
-      "gallery.entry": "Enter the gallery →",
+      "gallery.entry": "View photo gallery",
       "gallery.title": "Light & Shadow · Online Photography Exhibition",
       "gallery.hintDesk": "Scroll / ← → to browse · Click a side card to focus · Click center to enlarge",
       "gallery.hintTouch": "Swipe to browse · Tap center to enlarge",
@@ -262,13 +285,33 @@
       "chat.q1": "What is Nick currently learning?",
       "chat.a1": "I'm strengthening my CS and math foundations while exploring AI for Science — applying machine learning and simulation to real scientific problems (like Digital Resin). Beyond class, I serve in student leadership and keep photography as a long-term hobby.",
       "chat.q2": "Tell me about Digital Resin.",
-      "chat.a2": "Sure. Digital Resin is my research project: a digital twin for ion-exchange resins that simulates adsorption in silico, supporting resin screening and process optimization. Molecular modeling, binding-energy computation, and 1D diffusion–adsorption simulation are complete — it's at MVP stage. Full details are in the Projects section on the Info page.",
+      "chat.a2": "Sure. Digital Resin is my research project: a digital twin for ion-exchange resins that simulates adsorption in silico, supporting resin screening and process optimization. Molecular modeling, binding-energy computation, and 1D diffusion–adsorption simulation are complete — it's at MVP stage. Open the project card to see the full roadmap in its details.",
       "chat.chipsLabel": "You can also ask",
       "chat.chip1": "How can I reach Nick?",
       "chat.chip2": "What are Nick's long-term goals?",
       "chat.chip3": "What are Nick's hobbies?",
       "chat.placeholder": "Ask Nick anything…",
-      "chat.note": "Static layout preview · Chat goes live in V3",
+      "chat.note": "Answers based on public information · Voice by Doubao ASR / TTS",
+      "chat.thinking": "Thinking…",
+      "chat.textError": "I couldn't connect this time. Please try again in a moment.",
+      "chat.voiceFallback": "You can still ask by text.",
+      "chat.voiceStart": "Ask by voice",
+      "chat.voiceStop": "Stop speaking",
+      "chat.voiceConnecting": "Preparing the microphone…",
+      "chat.processing": "Recognizing speech and preparing the answer…",
+      "chat.transcribing": "Transcribing…",
+      "chat.voiceReady": "Voice ready. Tap the button below to play it.",
+      "chat.ttsFallback": "Voice synthesis failed, so here is the text answer instead.",
+      "chat.audioLabel": "Digital twin voice answer",
+      "chat.audioPlay": "Play voice",
+      "chat.audioPause": "Pause",
+      "chat.audioFailed": "Playback failed. Please try again.",
+      "chat.listening": "Listening. Speak naturally, then tap stop.",
+      "chat.speaking": "Playing the answer…",
+      "chat.voiceError": "Voice is unavailable right now. Please use text instead.",
+      "chat.voiceUnsupported": "Voice is not supported in this browser. Please use text instead.",
+      "chat.voiceTooShort": "That was too short. Please try again.",
+      "chat.noTranscript": "(No clear speech detected)",
 
       "contact.eyebrow": "Contact",
       "contact.title": "Get in Touch",
@@ -282,6 +325,7 @@
       "a11y.menu": "Menu",
       "a11y.scrollDown": "Scroll down",
       "a11y.chatSend": "Send",
+      "a11y.galleryOpen": "View Nick's photography",
       "a11y.galleryClose": "Close gallery",
       "a11y.backToTop": "Back to top",
 
@@ -411,17 +455,17 @@
     forum: {
       zh: {
         name: "大学志愿者论坛小程序",
-        badge: "筹备中",
-        stage: "",
-        desc: "面向大学志愿者社群的微信小程序，支持提出建议、发布公告等功能，服务志愿活动的组织与沟通。",
-        note: "项目详情筹备中，敬请期待。"
+        badge: "已完成",
+        stage: "已开发完成，尚未上线",
+        desc: "面向大学志愿者社群的微信小程序，已开发完成提出建议与志愿活动公告功能，服务志愿活动的组织与沟通。",
+        note: "项目功能已开发完成，目前尚未上线公开运营。"
       },
       en: {
         name: "University Volunteer Forum",
-        badge: "Planning",
-        stage: "",
-        desc: "A WeChat mini program for university volunteer communities, featuring suggestion submission and announcement publishing to support volunteer activities.",
-        note: "Details coming soon."
+        badge: "Completed",
+        stage: "Development complete; not yet launched",
+        desc: "A WeChat mini program for university volunteer communities. Suggestion submission and volunteer announcement features are complete.",
+        note: "Development is complete; public operation has not started."
       }
     }
   };
@@ -602,8 +646,6 @@
       var hint = expandedCards[ec].querySelector(".feature-hint");
       if (hint) hint.textContent = dict["about.hintLess"];
     }
-    // 项目进程 Timeline：按当前语言重渲染（首屏初始化与切换语言共用）
-    renderTimeline();
   }
 
   langToggle.addEventListener("click", function () {
@@ -611,17 +653,15 @@
     applyLang(current === "zh" ? "en" : "zh");
   });
 
-  /* ---------- 2b. 项目进程 Timeline 渲染（V4.1） ---------- */
-  function renderTimeline() {
-    var listEl = document.getElementById("timeline");
-    if (!listEl) return;
+  /* ---------- 2b. Digital Resin 项目进程（仅呈现在项目详情中） ---------- */
+  function timelineMarkup() {
     var d = dict();
     var lang = htmlEl.getAttribute("lang") === "en" ? "en" : "zh";
-    var html = "";
+    var html = '<ol class="timeline timeline--modal" aria-label="' + escapeHtml(d["timeline.title"]) + '">';
     for (var i = 0; i < TIMELINE.length; i++) {
       var item = TIMELINE[i];
       var copy = item[lang] || item.zh;
-      html += '<li class="timeline-item timeline-item--' + item.status + ' reveal">'
+      html += '<li class="timeline-item timeline-item--' + item.status + '">'
         + '<div class="timeline-phase">'
         + '<span class="timeline-phase-label">' + d["timeline.phaseLabel"] + '</span>'
         + '<span class="timeline-phase-num">' + pad2(i + 1) + '</span>'
@@ -636,8 +676,7 @@
         + '</div>'
         + '</li>';
     }
-    listEl.innerHTML = html;
-    observeRevealNodes(listEl.querySelectorAll(".reveal"));
+    return html + '</ol>';
   }
 
   /* ---------- 3. 主题切换 ---------- */
@@ -876,6 +915,10 @@
     if (p.goals && p.goals.length) {
       html += '<section class="m-sec"><h3>' + t("modal.sec.goals") + '</h3><ol>' +
         p.goals.map(function (g) { return "<li>" + g + "</li>"; }).join("") + '</ol></section>';
+    }
+    if (id === "resin") {
+      html += '<section class="m-sec m-sec--timeline"><h3>' + t("timeline.title") + '</h3>';
+      html += '<p class="timeline-lead">' + t("timeline.lead") + '</p>' + timelineMarkup() + '</section>';
     }
     if (p.done && p.done.length) {
       html += '<section class="m-sec"><h3>' + t("modal.sec.done") + '</h3><ul>' +
@@ -1262,18 +1305,15 @@
     });
   }
 
-  /* ---------- 5f. Chat 静态预览：建议追问 chips 点击填充输入框 ---------- */
+  /* ---------- 5f. 数字分身：真实文本对话与火山 ASR / TTS 半双工语音 ---------- */
   function initChat() {
-    var input = document.getElementById("chat-input");
-    if (!input) return;
-    var chips = document.querySelectorAll(".chat-chip");
-    for (var i = 0; i < chips.length; i++) {
-      chips[i].addEventListener("click", function () {
-        /* textContent 已被 applyLang 本地化为当前语言 */
-        input.value = this.textContent;
-        input.focus();
-      });
-    }
+    if (!window.NickDigitalTwin || !document.getElementById("chat-input")) return;
+    window.NickDigitalTwin.init({
+      loadSupabase: loadSupabase,
+      supabaseUrl: SUPABASE_URL,
+      getLang: function () { return htmlEl.getAttribute("lang") === "en" ? "en" : "zh"; },
+      text: function (key) { return key ? (dict()[key] || key) : ""; }
+    });
   }
 
   /* ---------- 5f-2. 邮箱点击复制（V5.6）：明文 mailto 改为 copy-to-clipboard，防爬虫采集 ---------- */
