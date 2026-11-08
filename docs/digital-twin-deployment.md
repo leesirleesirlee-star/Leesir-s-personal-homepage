@@ -9,6 +9,7 @@
 - 录音最长 30 秒；Ogg/Opus 可直接上传，其他浏览器录音会真实解码并转码为 16 kHz、16 bit、单声道 WAV。
 - TTS 失败时保留 ASR 文本和模型文字回答；ASR 或文本模型失败时保留文字提问入口。
 - ASR 返回静音状态 `20000003` 时统一映射为 `ASR_EMPTY`，页面提示“无法识别语音，请重新尝试”，不再误报连接失败。
+- V6.4 起，文本和语音问答成功后会写入 `public.digital_twin_messages`，供 Supabase 后台复盘；写入失败不会影响回答返回。
 - 系统提示词与公开知识库：`supabase/functions/_shared/prompt.ts`。
 - 个人资料填写表：`docs/digital-twin-profile.md`，已由本人填写并同步到知识库；后续修改资料时需同步复核。
 
@@ -69,6 +70,7 @@ Cloudflare Pages 的项目根目录新增 `functions/api/supabase/[[path]].ts`�
 7. 临时把 `VOLC_TTS_VOICE` 改为未授权值，可验证 TTS 失败后是否仍显示文字回答；验证后立刻改回。
 8. 用 HTTPS 正式地址测试麦克风权限。除 localhost 外，普通 HTTP 页面不能作为正式语音演示环境。
 9. 国内网络验证时先看 Network 面板：浏览器应请求同源 `/api/supabase/...`，不应直接请求 `*.supabase.co`。若同源反代返回 HTML 或 5xx，前端会回退到函数专用域名与 Supabase 直连。
+10. 成功问答后到 Table Editor 的 `digital_twin_messages` 确认新增一行；记录缺失时先看 Function Logs 的 `stage=chat_log`。
 
 ## 5. 必须人工完成的测试
 
@@ -78,7 +80,69 @@ Cloudflare Pages 的项目根目录新增 `functions/api/supabase/[[path]].ts`�
 - 检查录音到文字、文字到语音的总时延，以及连续三轮对话。
 - 使用国内普通手机流量与宽带测试，不只使用校园网或代理网络。
 
-## 6. 官方依据
+## 6. 聊天记录查看（V6.4）
+
+每次文本或语音问答成功后，函数会向 `public.digital_twin_messages` 写入一行；写入失败不会影响回答返回。
+
+记录字段：
+
+- `session_id`：同一标签页内的匿名会话 ID，用于串联多轮对话
+- `request_id`：与服务端日志对应的请求 ID
+- `question`：用户当前问题或语音识别文本
+- `answer`：数字分身回答
+- `lang`：界面语言 `zh` / `en`，不等同于问题文本的语种
+- `source`：`text` / `voice`
+- `created_at`：写入时间
+
+**查看位置**
+
+Supabase Dashboard → 项目 `Nick's homepage` → **Table Editor** → `digital_twin_messages`：
+
+<https://supabase.com/dashboard/project/hblrhrhwmnlpvpadvgmq/editor>
+
+按 `created_at` 倒序查看最新记录；需要看某次对话时，用 `session_id` 过滤。常用 SQL：
+
+```sql
+-- 最近 100 条
+select created_at, source, lang, session_id, question, answer
+from public.digital_twin_messages
+order by created_at desc
+limit 100;
+
+-- 某一次会话的完整多轮对话
+select created_at, source, question, answer
+from public.digital_twin_messages
+where session_id = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+order by created_at;
+
+-- 每天问答量
+select date_trunc('day', created_at) as day, count(*) as turns
+from public.digital_twin_messages
+group by 1
+order by 1 desc;
+```
+
+**隐私与权限**
+
+- `SUPABASE_URL` 与 `SUPABASE_SERVICE_ROLE_KEY` 由 Supabase Edge Functions 自动注入，不需要手工写入 Secrets。
+- 只记录当前问题和回答，不记录 system prompt、完整 history、IP 或 User-Agent。
+- 表已启用 RLS，未创建匿名/登录用户策略；`anon` 与 `authenticated` 无法读取或写入，只有 `service_role` 可写、Supabase 后台可读。
+- `session_id` 使用浏览器 `sessionStorage`，关闭标签页后重新打开会生成新会话；它不是登录身份，无法跨设备识别同一个人。
+- 建议在页面隐私说明中注明“对话会被记录用于改进服务”，并定期清理不再需要的记录。例如只保留最近 90 天：
+
+```sql
+delete from public.digital_twin_messages
+where created_at < now() - interval '90 days';
+```
+
+初始化 SQL 在 `supabase/migrations/20261108000000_digital_twin_messages.sql`，可重复执行：
+
+```bash
+supabase db query --remote=hblrhrhwmnlpvpadvgmq \
+  --file=supabase/migrations/20261108000000_digital_twin_messages.sql --yes
+```
+
+## 7. 官方依据
 
 - 方舟 Chat API：<https://www.volcengine.com/docs/82379/1298454>
 - 方舟 API Key：<https://www.volcengine.com/docs/82379/1541594>
@@ -90,7 +154,7 @@ Cloudflare Pages 的项目根目录新增 `functions/api/supabase/[[path]].ts`�
 - Cloudflare Pages Functions 文件路由：<https://developers.cloudflare.com/pages/functions/routing/>
 - Cloudflare Pages Functions 本地/构建：<https://developers.cloudflare.com/pages/functions/>
 
-## 7. 当前连通状态（2026-11-08）
+## 8. 当前连通状态（2026-11-08）
 
 - 方舟文本模型已确认并部署为 `doubao-seed-2-1-turbo-260628`。
 - 线上 `digital-twin-chat` 已通过真实调用：HTTP 200、CORS 正常，能够准确回答 Digital Resin、AI for Science 和升学目标。
@@ -101,6 +165,7 @@ Cloudflare Pages 的项目根目录新增 `functions/api/supabase/[[path]].ts`�
 - `digital-twin-chat`、`digital-twin-voice`、`digital-twin-tts` 三个函数均可用 `functions.supabase.co` 专用域名访问，并返回正确 CORS。
 - Cloudflare Pages 同源反代已在线实测：`/api/supabase/rest/v1/project_stats` 返回真实 JSON；文本问答与 TTS 通过反代返回 200；静音 ASR 通过反代返回 422 `ASR_EMPTY`。线上页面资源记录只出现同源 `/api/supabase/...`，没有浏览器直连 `*.supabase.co`。
 - GitHub Pages 镜像已验证自动回退到 Supabase 函数直连，文字回答的按需 TTS 仍可播放。
+- V6.4 聊天记录已上线并实测：文字与语音各写入 1 条记录；真实页面自动生成匿名 `session_id` 并成功入库；匿名 key 对记录表的读取和写入均返回 401。测试记录已从生产表清理。
 - Supabase Secrets 已配置到项目；本地私密文件已被 Git 忽略并设为仅当前用户可读写，不要复制真实值到本文档或聊天中。
 
 > 文字、ASR、方舟回答、TTS、同源反代和 GitHub Pages 回退均已实测通过；页面麦克风权限与真实设备录音仍需在浏览器中做最终体验确认。

@@ -1,4 +1,5 @@
 import { buildInstructions } from "../_shared/prompt.ts";
+import { cleanLang, cleanSessionId, logDigitalTwinMessage } from "../_shared/chat-log.ts";
 
 const ARK_ENDPOINT = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
 const MAX_MESSAGE_LENGTH = 500;
@@ -96,6 +97,8 @@ Deno.serve(async (req) => {
 
   const history = cleanHistory(body.history);
   const requestId = crypto.randomUUID();
+  const sessionId = cleanSessionId(body.sessionId, requestId);
+  const lang = cleanLang(body.lang);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 45_000);
 
@@ -136,7 +139,16 @@ Deno.serve(async (req) => {
       return json({ error: "Empty model response", code: "EMPTY_RESPONSE", requestId }, 502, origin);
     }
 
-    return json({ answer: answer.slice(0, 3000), requestId }, 200, origin);
+    const responseAnswer = answer.slice(0, 3000);
+    await logDigitalTwinMessage({
+      sessionId,
+      requestId,
+      question: message,
+      answer: responseAnswer,
+      lang,
+      source: "text",
+    });
+    return json({ answer: responseAnswer, requestId }, 200, origin);
   } catch (error) {
     const timedOut = error instanceof Error && error.name === "AbortError";
     console.error(JSON.stringify({ requestId, error: error instanceof Error ? error.message : String(error) }));

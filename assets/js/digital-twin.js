@@ -4,6 +4,7 @@
 
   var config = null;
   var history = [];
+  var chatSessionId = null;
   var sending = false;
   var voice = null;
   var activePlaybackStop = null;
@@ -15,6 +16,34 @@
   function scrollToLatest() {
     var scroll = byId("chat-scroll");
     if (scroll) scroll.scrollTop = scroll.scrollHeight;
+  }
+
+  function createSessionId() {
+    var cryptoObj = window.crypto;
+    if (cryptoObj && typeof cryptoObj.randomUUID === "function") return cryptoObj.randomUUID();
+    var bytes = new Uint8Array(16);
+    if (cryptoObj && typeof cryptoObj.getRandomValues === "function") {
+      cryptoObj.getRandomValues(bytes);
+    } else {
+      for (var i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+    }
+    var parts = [];
+    for (var j = 0; j < bytes.length; j++) parts.push(("0" + bytes[j].toString(16)).slice(-2));
+    return parts.join("");
+  }
+
+  function getChatSessionId() {
+    if (chatSessionId) return chatSessionId;
+    try {
+      chatSessionId = window.sessionStorage.getItem("nick-digital-twin-session");
+      if (!chatSessionId || !/^[A-Za-z0-9_-]{8,64}$/.test(chatSessionId)) {
+        chatSessionId = createSessionId();
+        window.sessionStorage.setItem("nick-digital-twin-session", chatSessionId);
+      }
+    } catch (error) {
+      chatSessionId = createSessionId();
+    }
+    return chatSessionId;
   }
 
   function copyFallback(value) {
@@ -353,7 +382,12 @@
     var loading = addMessage("ai", "…", true);
 
     callFunction("digital-twin-chat", {
-      body: { message: message, history: priorHistory, lang: config.getLang() },
+      body: {
+        message: message,
+        history: priorHistory,
+        lang: config.getLang(),
+        sessionId: getChatSessionId()
+      },
       timeout: 60000
     }).then(function (data) {
       if (!data || !data.answer) throw new Error("Empty response");
@@ -921,6 +955,7 @@
       form.append("audio", audioBlob, audioBlob.type.indexOf("ogg") >= 0 ? "question.ogg" : "question.wav");
       form.append("history", JSON.stringify(history.slice(-6)));
       form.append("lang", config.getLang());
+      form.append("sessionId", getChatSessionId());
       return callFunction("digital-twin-voice", { body: form, timeout: 90000 });
     }).then(function (data) {
       if (!data || !data.answer) throw apiError("Incomplete voice response", "EMPTY_RESPONSE", 502, false);

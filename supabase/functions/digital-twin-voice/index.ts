@@ -1,4 +1,5 @@
 import { buildInstructions } from "../_shared/prompt.ts";
+import { cleanLang, cleanSessionId, logDigitalTwinMessage } from "../_shared/chat-log.ts";
 import { encodeBase64, fetchWithTimeout, synthesizeMp3 } from "../_shared/volc-tts.ts";
 
 const ASR_ENDPOINT = "https://openspeech.bytedance.com/api/v3/auc/bigmodel/recognize/flash";
@@ -84,6 +85,9 @@ Deno.serve(async (req) => {
     return json({ error: "Expected multipart form data", code: "BAD_REQUEST" }, 400, origin);
   }
 
+  const sessionId = cleanSessionId(form.get("sessionId"), requestId);
+  const lang = cleanLang(form.get("lang"));
+
   try {
     const audio = form.get("audio");
     if (!(audio instanceof File) || audio.size === 0 || audio.size > 8 * 1024 * 1024) {
@@ -153,6 +157,15 @@ Deno.serve(async (req) => {
     const arkResult = await arkResponse.json() as { choices?: Array<{ message?: { content?: string } }> };
     const answer = arkResult.choices?.[0]?.message?.content?.trim().slice(0, 2000);
     if (!answer) return json({ error: "Empty model response", code: "EMPTY_RESPONSE", requestId }, 502, origin);
+
+    await logDigitalTwinMessage({
+      sessionId,
+      requestId,
+      question: transcript,
+      answer,
+      lang,
+      source: "voice",
+    });
 
     // 3) TTS V3：逐条读取 chunked JSON，分别解码音频块后拼接 MP3。
     // TTS 失败仍返回文本结果，前端据此降级为纯文字回答。
