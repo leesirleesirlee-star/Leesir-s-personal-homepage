@@ -166,6 +166,7 @@ supabase db query --remote=hblrhrhwmnlpvpadvgmq \
 - Cloudflare Pages 同源反代已在线实测：`/api/supabase/rest/v1/project_stats` 返回真实 JSON；文本问答与 TTS 通过反代返回 200；静音 ASR 通过反代返回 422 `ASR_EMPTY`。线上页面资源记录只出现同源 `/api/supabase/...`，没有浏览器直连 `*.supabase.co`。
 - GitHub Pages 镜像已验证自动回退到 Supabase 函数直连，文字回答的按需 TTS 仍可播放。
 - V6.4 聊天记录已上线并实测：文字与语音各写入 1 条记录；真实页面自动生成匿名 `session_id` 并成功入库；匿名 key 对记录表的读取和写入均返回 401。测试记录已从生产表清理。
+- V6.4.1 回答打字机效果已上线：短回答逐字出现，长回答自动加速、最长约 3.2 秒；复制/朗读/分享操作栏在文字结束后出现；系统开启“减少动态效果”时直接显示完整回答。
 - Supabase Secrets 已配置到项目；本地私密文件已被 Git 忽略并设为仅当前用户可读写，不要复制真实值到本文档或聊天中。
 
 > 文字、ASR、方舟回答、TTS、同源反代和 GitHub Pages 回退均已实测通过；页面麦克风权限与真实设备录音仍需在浏览器中做最终体验确认。

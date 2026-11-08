@@ -8,6 +8,7 @@
   var sending = false;
   var voice = null;
   var activePlaybackStop = null;
+  var activeTypewriter = null;
   var preferredApiBase = null;
   var languageRefreshers = [];
 
@@ -334,6 +335,71 @@
     return paragraph;
   }
 
+  function finishActiveTypewriter() {
+    if (activeTypewriter) activeTypewriter.finish();
+  }
+
+  /* 逐字显示回答：短文本按字出现，长文本按固定时长加速，避免等待过久。 */
+  function typeAnswer(paragraph, answer, onDone) {
+    finishActiveTypewriter();
+    var text = answer || "";
+    var chars = Array.from(text);
+    var reducedMotion = window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (!chars.length || reducedMotion) {
+      paragraph.textContent = text;
+      paragraph.classList.remove("is-typing");
+      paragraph.removeAttribute("aria-busy");
+      if (onDone) onDone();
+      return null;
+    }
+
+    var done = false;
+    var startedAt = null;
+    var duration = Math.max(450, Math.min(3200, chars.length * 8));
+    var fallbackTimer = null;
+    var frameId = null;
+    var raf = window.requestAnimationFrame || function (callback) {
+      return window.setTimeout(function () { callback(Date.now()); }, 16);
+    };
+
+    function finish() {
+      if (done) return;
+      done = true;
+      if (fallbackTimer) window.clearTimeout(fallbackTimer);
+      if (frameId && window.cancelAnimationFrame) window.cancelAnimationFrame(frameId);
+      paragraph.textContent = text;
+      paragraph.classList.remove("is-typing");
+      paragraph.removeAttribute("aria-busy");
+      activeTypewriter = null;
+      if (onDone) onDone();
+    }
+
+    function step(now) {
+      if (done) return;
+      if (startedAt === null) startedAt = now;
+      var progress = Math.min(1, (now - startedAt) / duration);
+      var count = Math.max(1, Math.floor(chars.length * progress));
+      paragraph.textContent = chars.slice(0, count).join("");
+      if (progress < 1) {
+        if (count % 5 === 0) scrollToLatest();
+        frameId = raf(step);
+      } else {
+        finish();
+      }
+    }
+
+    paragraph.textContent = "";
+    paragraph.classList.add("is-typing");
+    paragraph.setAttribute("aria-busy", "true");
+    activeTypewriter = { finish: finish };
+    fallbackTimer = window.setTimeout(finish, duration + 300);
+    frameId = raf(step);
+    scrollToLatest();
+    return activeTypewriter;
+  }
+
   function removeMessage(paragraph) {
     var bubble = paragraph && paragraph.parentElement;
     var row = bubble && bubble.parentElement;
@@ -373,6 +439,7 @@
     var input = byId("chat-input");
     var message = input.value.trim();
     if (!message || sending || voice) return;
+    finishActiveTypewriter();
     hideChips();
     var priorHistory = history.slice();
     addMessage("user", message);
@@ -393,10 +460,11 @@
       if (!data || !data.answer) throw new Error("Empty response");
       var answer = data.answer;
       loading.classList.remove("chat-loading");
-      loading.textContent = answer;
-      attachActions(loading.parentElement, loading);
       remember(message, answer);
       setStatus("");
+      typeAnswer(loading, answer, function () {
+        attachActions(loading.parentElement, loading);
+      });
     }).catch(function (error) {
       console.error("Digital twin text request failed:", error);
       loading.classList.remove("chat-loading");
@@ -940,6 +1008,7 @@
 
   function processRecording(blob, mimeType) {
     if (!voice) return;
+    finishActiveTypewriter();
     var current = voice;
     if (Date.now() - current.startedAt < 350 || blob.size === 0) {
       failVoice("chat.voiceTooShort");
@@ -962,12 +1031,13 @@
       question.classList.remove("chat-loading");
       question.textContent = data.transcript || t("chat.noTranscript");
       loading.classList.remove("chat-loading");
-      loading.textContent = data.answer;
       if (data.transcript) remember(data.transcript, data.answer);
       resetVoice();
-      attachActions(loading.parentElement, loading, data.audioBase64 || null);
-      setStatus(data.audioBase64 ? "chat.voiceReady" : "chat.audioOnDemand");
-      scrollToLatest();
+      typeAnswer(loading, data.answer, function () {
+        attachActions(loading.parentElement, loading, data.audioBase64 || null);
+        setStatus(data.audioBase64 ? "chat.voiceReady" : "chat.audioOnDemand");
+        scrollToLatest();
+      });
     }).catch(function (error) {
       console.error("Digital twin voice request failed:", error);
       removeMessage(question);
@@ -998,6 +1068,7 @@
       setStatus("chat.voiceUnsupported");
       return;
     }
+    finishActiveTypewriter();
     stopActivePlayback();
     hideChips();
     setSending(true);
