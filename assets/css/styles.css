@@ -3350,9 +3350,9 @@ body[data-view="info"] .back-to-top {
   }
 
   .chat-orb__sphere {
-    flex-basis: 56px;
-    width: 56px;
-    height: 56px;
+    flex-basis: 54px;
+    width: 54px;
+    height: 54px;
   }
 
   .chat-orb__sphere::after {
