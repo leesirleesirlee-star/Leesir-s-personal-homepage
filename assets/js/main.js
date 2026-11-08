@@ -106,6 +106,7 @@
       "gallery.hintTouch": "左右滑动翻页 · 轻点中央看大图",
       "view.info": "信息",
       "view.chat": "聊天",
+      "chat.orbLabel": "和分身聊聊",
       "chat.greeting": "你好！我是 Nick 的数字分身。关于我的学业、科研与项目，想了解的都可以问我。",
       "chat.q1": "Nick 最近在学什么？",
       "chat.a1": "我在夯实计算机与数学的专业基础，同时探索 AI for Science——把机器学习与仿真方法用于真实科学问题（比如 Digital Resin）；课外参与学生工作，也保持着摄影这项长期爱好。",
@@ -181,6 +182,7 @@
       "a11y.menu": "菜单",
       "a11y.scrollDown": "向下滚动",
       "a11y.chatSend": "发送",
+      "a11y.chatOrb": "和 Nick 的数字分身聊天",
       "a11y.galleryOpen": "查看摄影作品",
       "a11y.galleryClose": "关闭画廊",
       "a11y.backToTop": "返回顶部",
@@ -312,6 +314,7 @@
       "gallery.hintTouch": "Swipe to browse · Tap center to enlarge",
       "view.info": "Info",
       "view.chat": "Chat",
+      "chat.orbLabel": "Ask my twin",
       "chat.greeting": "Hi! I'm Nick's digital twin. Ask me anything about my studies, research, or projects.",
       "chat.q1": "What is Nick currently learning?",
       "chat.a1": "I'm strengthening my CS and math foundations while exploring AI for Science — applying machine learning and simulation to real scientific problems (like Digital Resin). Beyond class, I serve in student leadership and keep photography as a long-term hobby.",
@@ -387,6 +390,7 @@
       "a11y.menu": "Menu",
       "a11y.scrollDown": "Scroll down",
       "a11y.chatSend": "Send",
+      "a11y.chatOrb": "Chat with Nick's digital twin",
       "a11y.galleryOpen": "View Nick's photography",
       "a11y.galleryClose": "Close gallery",
       "a11y.backToTop": "Back to top",
@@ -1274,10 +1278,25 @@
 
   /* ---------- 5d. 视图切换（Info / Chat，仿 ChatGPT 顶部切换） ---------- */
   var syncViewIndicators = null; /* 由 initViewSwitch 注入：滑块同步器 */
+  var viewScrollTimer = null;
 
-  function setView(view) {
+  function setView(view, shouldFocus) {
     if (view !== "info" && view !== "chat") return;
     document.body.setAttribute("data-view", view);
+
+    /* 隐藏视图从可访问性树和 Tab 顺序中移除，避免键盘焦点跑进叠层页面 */
+    var infoView = document.getElementById("view-info");
+    var chatView = document.getElementById("view-chat");
+    if (infoView) {
+      infoView.inert = view === "chat";
+      if (view === "chat") infoView.setAttribute("aria-hidden", "true");
+      else infoView.removeAttribute("aria-hidden");
+    }
+    if (chatView) {
+      chatView.inert = view === "info";
+      if (view === "info") chatView.setAttribute("aria-hidden", "true");
+      else chatView.removeAttribute("aria-hidden");
+    }
 
     var btns = document.querySelectorAll(".view-switch-btn");
     for (var i = 0; i < btns.length; i++) {
@@ -1308,13 +1327,46 @@
       }, 240);
     }
 
-    /* 立即回顶（绕过 CSS smooth，避免切视图后停在原滚动位置） */
-    document.documentElement.style.scrollBehavior = "auto";
-    window.scrollTo(0, 0);
-    document.documentElement.style.scrollBehavior = "";
+    var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    /* 交叉淡入期间保留当前视口，等信息页完全淡出后再回顶，避免切页跳一下 */
+    if (viewScrollTimer) {
+      clearTimeout(viewScrollTimer);
+      viewScrollTimer = null;
+    }
+    if (view === "chat") {
+      viewScrollTimer = setTimeout(function () {
+        viewScrollTimer = null;
+        if (document.body.getAttribute("data-view") !== "chat") return;
+        document.documentElement.style.scrollBehavior = "auto";
+        window.scrollTo(0, 0);
+        document.documentElement.style.scrollBehavior = "";
+      }, reduced ? 0 : 380);
+    }
+
+    /* 进入 chat 后把焦点交给对话区；手机不主动弹键盘，避免打断浏览 */
+    if (view === "chat" && shouldFocus !== false) {
+      setTimeout(function () {
+        if (document.body.getAttribute("data-view") !== "chat") return;
+        var isFinePointer = window.matchMedia && window.matchMedia("(pointer: fine)").matches;
+        var target = isFinePointer ? document.getElementById("chat-input") : chatView;
+        if (target && typeof target.focus === "function") {
+          try { target.focus({ preventScroll: true }); } catch (error) { target.focus(); }
+        }
+      }, reduced ? 0 : 360);
+    }
   }
 
   function initViewSwitch() {
+    /* 首帧禁用过渡：直接打开 ?view=chat 时不要从信息页闪一下 */
+    document.body.classList.add("view-instant");
+
+    /* 主页面悬浮玻璃球：点击进入数字分身 */
+    var chatOrb = document.getElementById("chat-orb");
+    if (chatOrb) {
+      chatOrb.addEventListener("click", function () { setView("chat"); });
+    }
+
     /* 滑块工厂：每个 .view-switch（桌面导航 + 移动菜单）注入一个指示器 */
     var recs = [];
     var switches = document.querySelectorAll(".view-switch");
@@ -1396,7 +1448,14 @@
     /* 支持 ?view=chat 直达聊天，便于预览和分享单条回答。 */
     var initialView = null;
     try { initialView = new URLSearchParams(window.location.search).get("view"); } catch (error) { initialView = null; }
-    if (initialView === "chat" || initialView === "info") setView(initialView);
+    if (initialView === "chat" || initialView === "info") setView(initialView, false);
+
+    function clearInstant() { document.body.classList.remove("view-instant"); }
+    if (window.requestAnimationFrame) {
+      requestAnimationFrame(function () { requestAnimationFrame(clearInstant); });
+    } else {
+      setTimeout(clearInstant, 40);
+    }
   }
 
   /* ---------- 5e. 返回顶部按钮 ---------- */

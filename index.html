@@ -19,7 +19,7 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="assets/css/styles.css?v=6.4.1">
+  <link rel="stylesheet" href="assets/css/styles.css?v=6.5.0">
 
   <!-- App 化基础（V4）：favicon / 主屏图标 / 安装清单 / 主题色 -->
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
@@ -325,7 +325,7 @@
   </main>
 
   <!-- ============ Chat View：真实文本问答 + 火山 ASR / TTS 半双工语音 ============ -->
-  <main id="view-chat">
+  <main id="view-chat" tabindex="-1" aria-label="数字分身聊天" aria-hidden="true" inert>
     <div class="chat-shell">
       <div class="chat-scroll" id="chat-scroll">
         <div class="chat-thread" id="chat-thread">
@@ -372,6 +372,20 @@
     <p data-i18n="footer.text">© 2026 Nick Lee · V5</p>
   </footer>
 
+  <!-- ============ Floating Chat Orb：主页面找到数字分身的入口 ============ -->
+  <button class="chat-orb" id="chat-orb" type="button" aria-controls="view-chat" aria-label="和 Nick 的数字分身聊天" data-i18n-aria="a11y.chatOrb">
+    <span class="chat-orb__label" data-i18n="chat.orbLabel">和分身聊聊</span>
+    <span class="chat-orb__sphere" aria-hidden="true">
+      <span class="chat-orb__sheen"></span>
+      <span class="chat-orb__caustic"></span>
+      <svg class="chat-orb__icon" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>
+        <path d="M8.2 11.5h.01M12.2 11.5h.01M16.2 11.5h.01"/>
+      </svg>
+      <span class="chat-orb__spark"></span>
+    </span>
+  </button>
+
   <!-- ============ Photography Gallery (V5 · Cover Flow) ============ -->
   <div class="gallery-overlay" id="gallery-overlay" aria-hidden="true">
     <div class="gallery-stage" role="dialog" aria-modal="true" aria-labelledby="gallery-title">
@@ -405,8 +419,8 @@
   </button>
 
   <!-- supabase-js 按需加载（V4）：首屏不加载，打开项目详情 / 提交反馈时动态引入 -->
-  <script src="assets/js/digital-twin.js?v=6.4.1"></script>
-  <script src="assets/js/main.js?v=6.4.1"></script>
-  <script src="assets/js/coverflow.js?v=6.4.1"></script>
+  <script src="assets/js/digital-twin.js?v=6.5.0"></script>
+  <script src="assets/js/main.js?v=6.5.0"></script>
+  <script src="assets/js/coverflow.js?v=6.5.0"></script>
 </body>
 </html>
