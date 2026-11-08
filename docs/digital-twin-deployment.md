@@ -99,6 +99,8 @@ Cloudflare Pages 的项目根目录新增 `functions/api/supabase/[[path]].ts`�
 - ASR 已确认可用资源为 `volc.seedasr.auc`（录音文件识别 2.0）。静音 WAV 返回 `X-Api-Status-Code: 20000003`，生产函数已映射为 `ASR_EMPTY`，页面提示“无法识别语音，请重新尝试”。
 - 线上 `digital-twin-voice` 已通过真实 WAV 全链路：识别出“nick AI for Science.”，模型返回 Digital Resin 与 AI for Science 的正确回答，TTS 生成 27.264 秒、24 kHz、64 kbps 单声道 MP3。
 - `digital-twin-chat`、`digital-twin-voice`、`digital-twin-tts` 三个函数均可用 `functions.supabase.co` 专用域名访问，并返回正确 CORS。
+- Cloudflare Pages 同源反代已在线实测：`/api/supabase/rest/v1/project_stats` 返回真实 JSON；文本问答与 TTS 通过反代返回 200；静音 ASR 通过反代返回 422 `ASR_EMPTY`。线上页面资源记录只出现同源 `/api/supabase/...`，没有浏览器直连 `*.supabase.co`。
+- GitHub Pages 镜像已验证自动回退到 Supabase 函数直连，文字回答的按需 TTS 仍可播放。
 - Supabase Secrets 已配置到项目；本地私密文件已被 Git 忽略并设为仅当前用户可读写，不要复制真实值到本文档或聊天中。
 
-> 文字、ASR、方舟回答和 TTS 均已实测通过；同源反代需要在 Cloudflare Pages 部署后通过 `/api/supabase/...` 实测，页面麦克风权限与真实设备录音仍需在浏览器中做最终体验确认。
+> 文字、ASR、方舟回答、TTS、同源反代和 GitHub Pages 回退均已实测通过；页面麦克风权限与真实设备录音仍需在浏览器中做最终体验确认。
