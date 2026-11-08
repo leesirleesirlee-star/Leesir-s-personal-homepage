@@ -6,13 +6,184 @@
   var history = [];
   var sending = false;
   var voice = null;
-  var activeAudio = null;
+  var activePlaybackStop = null;
+  var languageRefreshers = [];
 
   function t(key) { return config.text(key); }
   function byId(id) { return document.getElementById(id); }
   function scrollToLatest() {
     var scroll = byId("chat-scroll");
     if (scroll) scroll.scrollTop = scroll.scrollHeight;
+  }
+
+  function copyFallback(value) {
+    var area = document.createElement("textarea");
+    area.value = value;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.top = "-9999px";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.focus();
+    area.select();
+    area.setSelectionRange(0, area.value.length);
+    var copied = false;
+    try { copied = document.execCommand("copy"); } catch (error) { copied = false; }
+    document.body.removeChild(area);
+    if (!copied) return Promise.reject(new Error("Copy unavailable"));
+    return Promise.resolve();
+  }
+
+  function copyToClipboard(value) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(value).catch(function () {
+        return copyFallback(value);
+      });
+    }
+    return copyFallback(value);
+  }
+
+  function shareAnswer(value) {
+    var shareUrl = window.location.href;
+    try {
+      var target = new URL(window.location.href);
+      target.searchParams.set("view", "chat");
+      shareUrl = target.toString();
+    } catch (error) {
+      /* 保留当前地址。 */
+    }
+    if (navigator.share) {
+      return navigator.share({
+        title: "Nick Lee — Digital Twin",
+        text: value,
+        url: shareUrl
+      }).then(function () {
+        return { shared: true };
+      }).catch(function (error) {
+        if (error && error.name === "AbortError") return { cancelled: true };
+        return copyToClipboard(value).then(function () { return { copied: true }; });
+      });
+    }
+    return copyToClipboard(value).then(function () { return { copied: true }; });
+  }
+
+  function canSpeak() {
+    return !!(window.speechSynthesis && window.SpeechSynthesisUtterance);
+  }
+
+  function speechLanguage(value) {
+    return /[\u3400-\u9FFF]/.test(value || "") ? "zh-CN" : "en-US";
+  }
+
+  function pickSpeechVoice(language) {
+    if (!canSpeak()) return null;
+    var voices = window.speechSynthesis.getVoices();
+    for (var i = 0; i < voices.length; i++) {
+      if (voices[i].lang === language) return voices[i];
+    }
+    for (var j = 0; j < voices.length; j++) {
+      if (voices[j].lang.indexOf(language.slice(0, 2)) === 0) return voices[j];
+    }
+    return null;
+  }
+
+  function answerHash(value) {
+    var hash = 2166136261;
+    var text = value || "";
+    for (var i = 0; i < text.length; i++) {
+      hash ^= text.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(36);
+  }
+
+  function readFeedbackState(value) {
+    try {
+      var stored = window.localStorage.getItem("nick-chat-feedback:" + answerHash(value));
+      return stored ? JSON.parse(stored) : {};
+    } catch (error) {
+      return {};
+    }
+  }
+
+  function writeFeedbackState(value, patch) {
+    try {
+      var state = readFeedbackState(value);
+      for (var key in patch) {
+        if (Object.prototype.hasOwnProperty.call(patch, key)) state[key] = patch[key];
+      }
+      window.localStorage.setItem("nick-chat-feedback:" + answerHash(value), JSON.stringify(state));
+    } catch (error) {
+      /* 隐私模式下 localStorage 可能不可用，不阻断界面反馈。 */
+    }
+  }
+
+  function detectDeviceType() {
+    var ua = navigator.userAgent;
+    if (/iPad|Tablet|PlayBook|Silk/i.test(ua) || (/Android/i.test(ua) && !/Mobile/i.test(ua))) return "tablet";
+    if (/Mobile|iPhone|iPod|Windows Phone/i.test(ua)) return "mobile";
+    return "desktop";
+  }
+
+  function collectDeviceInfo() {
+    return [
+      navigator.userAgent,
+      "screen:" + (window.screen ? window.screen.width + "x" + window.screen.height : "?"),
+      "viewport:" + window.innerWidth + "x" + window.innerHeight,
+      "touch:" + (("ontouchstart" in window) ? "yes" : "no"),
+      "osLang:" + navigator.language
+    ].join(" | ").slice(0, 500);
+  }
+
+  function submitChatFeedback(kind, reason, answer) {
+    if (/[?&]preview=/.test(window.location.search)) {
+      return Promise.resolve();
+    }
+    if (!config || typeof config.loadSupabase !== "function") {
+      return Promise.reject(new Error("Supabase unavailable"));
+    }
+    var prefix = kind === "love"
+      ? "【数字分身回答评价】喜爱"
+      : "【数字分身回答报告】原因：" + reason;
+    var content = (prefix + "\n\n回答：\n" + (answer || "")).slice(0, 1900);
+    return config.loadSupabase().then(function (sb) {
+      return sb.from("feedback").insert({
+        content: content,
+        contact: null,
+        relationship: "other",
+        device_type: detectDeviceType(),
+        device_info: collectDeviceInfo(),
+        lang: config.getLang(),
+        page: kind === "love" ? "chat-love" : "chat-report"
+      });
+    }).then(function (result) {
+      if (!result || result.error) {
+        throw new Error(result && result.error ? result.error.message : "Feedback failed");
+      }
+    });
+  }
+
+  function stopActivePlayback() {
+    if (!activePlaybackStop) return;
+    var stop = activePlaybackStop;
+    activePlaybackStop = null;
+    stop();
+  }
+
+  function closeAllActionMenus(except) {
+    var open = document.querySelectorAll(".chat-actions.is-menu-open");
+    for (var i = 0; i < open.length; i++) {
+      if (except && open[i] === except) continue;
+      open[i].classList.remove("is-menu-open");
+      var menu = open[i].querySelector(".chat-actions__menu");
+      var more = open[i].querySelector('[data-action="more"]');
+      var restoreFocus = open[i].contains(document.activeElement);
+      if (menu) menu.hidden = true;
+      if (more) {
+        more.setAttribute("aria-expanded", "false");
+        if (restoreFocus) more.focus({ preventScroll: true });
+      }
+    }
   }
 
   function addMessage(role, text, loading) {
@@ -103,6 +274,7 @@
       var answer = result.data.answer;
       loading.classList.remove("chat-loading");
       loading.textContent = answer;
+      attachActions(loading.parentElement, loading);
       remember(message, answer);
       setStatus("");
     }).catch(function (error) {
@@ -206,83 +378,387 @@
     setStatus(key || "chat.voiceFallback");
   }
 
-  function stopActiveAudio() {
-    if (activeAudio && !activeAudio.paused) activeAudio.pause();
-  }
+  function attachActions(bubble, paragraph, audioBase64) {
+    if (!bubble || !paragraph || bubble.querySelector(".chat-actions")) return;
 
-  function attachAudio(paragraph, audioBase64) {
-    var bytes = bytesFromBase64(audioBase64);
-    var url = URL.createObjectURL(new Blob([bytes], { type: "audio/mp3" }));
-    var audio = new Audio(url);
-    audio.preload = "metadata";
+    var answerText = paragraph.textContent || "";
+    var feedback = readFeedbackState(answerText);
+    var audio = null;
+    var objectUrl = null;
+    var utterance = null;
+    var reporting = false;
 
-    var button = document.createElement("button");
-    button.type = "button";
-    button.className = "chat-audio-button";
-    button.setAttribute("data-playing", "false");
-    button.setAttribute("aria-pressed", "false");
-    button.setAttribute("aria-label", t("chat.audioPlay"));
-    button.innerHTML =
-      '<span class="chat-audio-button__icon" aria-hidden="true">' +
-        '<svg class="chat-audio-icon chat-audio-icon--play" viewBox="0 0 16 16">' +
-          '<path d="M5 3.4v9.2l7.2-4.6L5 3.4Z" fill="currentColor"/>' +
-        '</svg>' +
-        '<svg class="chat-audio-icon chat-audio-icon--pause" viewBox="0 0 16 16">' +
-          '<rect x="4" y="3.2" width="2.6" height="9.6" rx="1" fill="currentColor"/>' +
-          '<rect x="9.4" y="3.2" width="2.6" height="9.6" rx="1" fill="currentColor"/>' +
-        '</svg>' +
-      '</span>' +
-      '<span class="chat-audio-button__label"></span>';
-    var label = button.querySelector(".chat-audio-button__label");
-    label.textContent = t("chat.audioPlay");
-    paragraph.parentElement.appendChild(button);
-
-    function render(isPlaying) {
-      button.setAttribute("data-playing", isPlaying ? "true" : "false");
-      button.setAttribute("aria-pressed", isPlaying ? "true" : "false");
-      button.setAttribute("aria-label", isPlaying ? t("chat.audioPause") : t("chat.audioPlay"));
-      label.textContent = isPlaying ? t("chat.audioPause") : t("chat.audioPlay");
+    if (audioBase64) {
+      try {
+        var bytes = bytesFromBase64(audioBase64);
+        objectUrl = URL.createObjectURL(new Blob([bytes], { type: "audio/mp3" }));
+        audio = new Audio(objectUrl);
+        audio.preload = "metadata";
+      } catch (error) {
+        console.error("Digital twin audio setup failed:", error);
+      }
     }
 
-    button.addEventListener("click", function () {
-      if (!audio.paused) {
-        audio.pause();
-        return;
+    var actions = document.createElement("div");
+    actions.className = "chat-actions";
+    actions.setAttribute("role", "group");
+    actions.innerHTML = [
+      '<button class="chat-action" type="button" data-action="copy">',
+        '<svg class="chat-action__copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">',
+          '<rect x="8.5" y="8.5" width="11.5" height="11.5" rx="3"></rect>',
+          '<path d="M5.8 15.5H5A2.5 2.5 0 0 1 2.5 13V5A2.5 2.5 0 0 1 5 2.5h8A2.5 2.5 0 0 1 15.5 5v.8"></path>',
+        '</svg>',
+        '<svg class="chat-action__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">',
+          '<path d="m5 12.5 4.3 4.3L19 7"></path>',
+        '</svg>',
+      '</button>',
+      '<button class="chat-action" type="button" data-action="speak">',
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">',
+          '<path d="M11.2 4.5 6.8 8.1H3.6v7.8h3.2l4.4 3.6V4.5Z"></path>',
+          '<path d="M15.2 8.7a4.7 4.7 0 0 1 0 6.6"></path>',
+          '<path d="M18.2 6a8.6 8.6 0 0 1 0 12"></path>',
+        '</svg>',
+      '</button>',
+      '<button class="chat-action" type="button" data-action="share">',
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">',
+          '<path d="M12 15V3.5"></path>',
+          '<path d="m7.7 7.8 4.3-4.3 4.3 4.3"></path>',
+          '<path d="M5 12.5v6A2.5 2.5 0 0 0 7.5 21h9a2.5 2.5 0 0 0 2.5-2.5v-6"></path>',
+        '</svg>',
+      '</button>',
+      '<div class="chat-actions__more-wrap">',
+        '<button class="chat-action" type="button" data-action="more" aria-haspopup="menu" aria-expanded="false">',
+          '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">',
+            '<circle cx="5.5" cy="12" r="1.55"></circle>',
+            '<circle cx="12" cy="12" r="1.55"></circle>',
+            '<circle cx="18.5" cy="12" r="1.55"></circle>',
+          '</svg>',
+        '</button>',
+        '<div class="chat-actions__menu" role="menu" hidden>',
+          '<div class="chat-actions__main">',
+            '<button class="chat-actions__item" type="button" role="menuitemcheckbox" data-action="love" aria-checked="false">',
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">',
+                '<path d="M20.8 5.8a5.2 5.2 0 0 0-7.4 0L12 7.2l-1.4-1.4a5.2 5.2 0 1 0-7.4 7.4L12 22l8.8-8.8a5.2 5.2 0 0 0 0-7.4Z"></path>',
+              '</svg>',
+              '<span class="chat-actions__label"></span>',
+            '</button>',
+            '<button class="chat-actions__item" type="button" role="menuitem" data-action="report">',
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">',
+                '<path d="M5 21V4"></path>',
+                '<path d="M5 5.5c4-2.5 7-2.5 11 0s5.5 1.5 5.5 1.5v8c-3.5 0-6.5-2-10.5 0S5 17 5 17"></path>',
+              '</svg>',
+              '<span class="chat-actions__label"></span>',
+              '<svg class="chat-actions__chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">',
+                '<path d="m6 3.5 4.5 4.5L6 12.5"></path>',
+              '</svg>',
+            '</button>',
+          '</div>',
+          '<div class="chat-actions__report" hidden>',
+            '<button class="chat-actions__back" type="button" data-action="back">',
+              '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">',
+                '<path d="M10 3.5 5.5 8l4.5 4.5"></path>',
+              '</svg>',
+              '<span></span>',
+            '</button>',
+            '<p class="chat-actions__menu-title chat-actions__menu-title--report"></p>',
+            '<button class="chat-actions__reason" type="button" data-reason="inaccurate"></button>',
+            '<button class="chat-actions__reason" type="button" data-reason="offtopic"></button>',
+            '<button class="chat-actions__reason" type="button" data-reason="inappropriate"></button>',
+          '</div>',
+          '<p class="chat-actions__note" role="status" aria-live="polite"></p>',
+        '</div>',
+      '</div>'
+    ].join("");
+    bubble.appendChild(actions);
+
+    var copyBtn = actions.querySelector('[data-action="copy"]');
+    var speakBtn = actions.querySelector('[data-action="speak"]');
+    var shareBtn = actions.querySelector('[data-action="share"]');
+    var moreBtn = actions.querySelector('[data-action="more"]');
+    var menu = actions.querySelector(".chat-actions__menu");
+    var mainPanel = actions.querySelector(".chat-actions__main");
+    var reportPanel = actions.querySelector(".chat-actions__report");
+    var reportTitle = actions.querySelector(".chat-actions__menu-title--report");
+    var backBtn = actions.querySelector('[data-action="back"]');
+    var loveBtn = actions.querySelector('[data-action="love"]');
+    var loveLabel = loveBtn.querySelector(".chat-actions__label");
+    var reportBtn = actions.querySelector('[data-action="report"]');
+    var note = actions.querySelector(".chat-actions__note");
+    var reasons = actions.querySelectorAll(".chat-actions__reason");
+
+    function refreshLanguage() {
+      actions.setAttribute("aria-label", t("chat.actionsLabel"));
+      copyBtn.setAttribute("aria-label", t("chat.copy"));
+      copyBtn.title = t("chat.copy");
+      shareBtn.setAttribute("aria-label", t("chat.share"));
+      shareBtn.title = t("chat.share");
+      moreBtn.setAttribute("aria-label", t("chat.more"));
+      moreBtn.title = t("chat.more");
+      menu.setAttribute("aria-label", t("chat.more"));
+      loveLabel.textContent = feedback.loved ? t("chat.loved") : t("chat.love");
+      reportBtn.querySelector(".chat-actions__label").textContent = t("chat.report");
+      backBtn.querySelector("span").textContent = t("chat.reportBack");
+      reportTitle.textContent = t("chat.reportTitle");
+      actions.querySelector('[data-reason="inaccurate"]').textContent = t("chat.reportInaccurate");
+      actions.querySelector('[data-reason="offtopic"]').textContent = t("chat.reportOffTopic");
+      actions.querySelector('[data-reason="inappropriate"]').textContent = t("chat.reportInappropriate");
+      renderSpeaking(speakBtn.classList.contains("is-playing"));
+    }
+    languageRefreshers.push(refreshLanguage);
+    refreshLanguage();
+
+    function currentAnswer() {
+      return paragraph.textContent || "";
+    }
+
+    function renderSpeaking(playing) {
+      speakBtn.classList.toggle("is-playing", playing);
+      speakBtn.setAttribute("aria-pressed", playing ? "true" : "false");
+      var label = playing
+        ? (audio ? t("chat.audioPause") : t("chat.readStop"))
+        : (audio ? t("chat.audioPlay") : t("chat.readAloud"));
+      speakBtn.setAttribute("aria-label", label);
+      speakBtn.title = label;
+    }
+
+    function stopOwnPlayback() {
+      if (audio && !audio.paused) audio.pause();
+      if (utterance) {
+        var current = utterance;
+        utterance = null;
+        current.onend = null;
+        current.onerror = null;
+        if (canSpeak()) window.speechSynthesis.cancel();
       }
-      stopActiveAudio();
-      activeAudio = audio;
+      renderSpeaking(false);
+      if (activePlaybackStop === stopOwnPlayback) activePlaybackStop = null;
+    }
+
+    function startAudio() {
+      stopActivePlayback();
+      activePlaybackStop = stopOwnPlayback;
+      try { audio.currentTime = 0; } catch (error) { /* metadata 尚未就绪时忽略。 */ }
       audio.play().catch(function (error) {
         console.error("Digital twin audio playback failed:", error);
-        render(false);
+        stopOwnPlayback();
         setStatus("chat.audioFailed");
       });
-    });
-    audio.addEventListener("play", function () {
-      render(true);
+    }
+
+    function startSpeech() {
+      if (!canSpeak()) {
+        setStatus("chat.voiceUnsupported");
+        return;
+      }
+      stopActivePlayback();
+      var speech = new window.SpeechSynthesisUtterance(currentAnswer());
+      speech.lang = speechLanguage(currentAnswer());
+      speech.rate = 1.01;
+      speech.pitch = 1;
+      var selected = pickSpeechVoice(speech.lang);
+      if (selected) speech.voice = selected;
+      utterance = speech;
+      activePlaybackStop = stopOwnPlayback;
+      renderSpeaking(true);
       setStatus("chat.speaking");
+      speech.onstart = function () { renderSpeaking(true); };
+      speech.onend = function () {
+        utterance = null;
+        if (activePlaybackStop === stopOwnPlayback) activePlaybackStop = null;
+        renderSpeaking(false);
+        setStatus("");
+      };
+      speech.onerror = function (event) {
+        utterance = null;
+        if (activePlaybackStop === stopOwnPlayback) activePlaybackStop = null;
+        renderSpeaking(false);
+        if (event && (event.error === "canceled" || event.error === "interrupted")) return;
+        setStatus("chat.audioFailed");
+      };
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(speech);
+    }
+
+    copyBtn.addEventListener("click", function () {
+      copyToClipboard(currentAnswer()).then(function () {
+        copyBtn.classList.add("is-success");
+        window.setTimeout(function () { copyBtn.classList.remove("is-success"); }, 1500);
+        setStatus("chat.copied");
+      }).catch(function (error) {
+        console.error("Digital twin copy failed:", error);
+        setStatus("chat.copyFailed");
+      });
     });
-    audio.addEventListener("pause", function () {
-      if (audio.ended) return;
-      render(false);
-      setStatus("chat.voiceReady");
+
+    speakBtn.addEventListener("click", function () {
+      if (audio) {
+        if (!audio.paused) {
+          stopOwnPlayback();
+          return;
+        }
+        startAudio();
+        return;
+      }
+      if (utterance) {
+        stopOwnPlayback();
+        return;
+      }
+      startSpeech();
     });
-    audio.addEventListener("ended", function () {
-      activeAudio = null;
-      render(false);
-      setStatus("chat.voiceReady");
+
+    shareBtn.addEventListener("click", function () {
+      shareAnswer(currentAnswer()).then(function (result) {
+        if (!result || result.cancelled) return;
+        setStatus(result.copied ? "chat.shareCopied" : "chat.shared");
+      }).catch(function (error) {
+        console.error("Digital twin share failed:", error);
+        setStatus("chat.copyFailed");
+      });
     });
-    audio.addEventListener("error", function () {
-      activeAudio = null;
-      render(false);
-      setStatus("chat.audioFailed");
+
+    function setMenuOpen(open) {
+      if (open) {
+        closeAllActionMenus(actions);
+        actions.classList.add("is-menu-open");
+      } else {
+        actions.classList.remove("is-menu-open");
+      }
+      menu.hidden = !open;
+      moreBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      if (open) {
+        mainPanel.hidden = false;
+        reportPanel.hidden = true;
+        note.className = "chat-actions__note";
+        note.textContent = feedback.reported ? t("chat.alreadyReported") : "";
+        menu.classList.remove("chat-actions__menu--below");
+        var scroll = byId("chat-scroll");
+        if (scroll) {
+          var menuRect = menu.getBoundingClientRect();
+          var scrollRect = scroll.getBoundingClientRect();
+          if (menuRect.top < scrollRect.top + 8) menu.classList.add("chat-actions__menu--below");
+        }
+        return;
+      }
+      if (actions.contains(document.activeElement)) {
+        moreBtn.focus({ preventScroll: true });
+      }
+    }
+
+    moreBtn.addEventListener("click", function (event) {
+      event.stopPropagation();
+      var open = menu.hidden;
+      setMenuOpen(open);
+      if (open) {
+        var first = mainPanel.querySelector("button");
+        if (first) first.focus({ preventScroll: true });
+      }
     });
+
+    reportBtn.addEventListener("click", function () {
+      if (feedback.reported) {
+        note.className = "chat-actions__note";
+        note.textContent = t("chat.alreadyReported");
+        return;
+      }
+      mainPanel.hidden = true;
+      reportPanel.hidden = false;
+      note.className = "chat-actions__note";
+      note.textContent = "";
+      setStatus("");
+      if (reasons.length) reasons[0].focus();
+    });
+
+    backBtn.addEventListener("click", function () {
+      reportPanel.hidden = true;
+      mainPanel.hidden = false;
+      note.className = "chat-actions__note";
+      note.textContent = "";
+      reportBtn.focus();
+    });
+
+    loveBtn.addEventListener("click", function () {
+      if (feedback.loved) {
+        setMenuOpen(false);
+        setStatus("chat.loved");
+        return;
+      }
+      feedback.loved = true;
+      writeFeedbackState(answerText, { loved: true });
+      loveBtn.classList.add("is-loved");
+      loveBtn.setAttribute("aria-checked", "true");
+      loveLabel.textContent = t("chat.loved");
+      setMenuOpen(false);
+      setStatus("chat.loveThanks");
+      submitChatFeedback("love", "", currentAnswer()).catch(function (error) {
+        console.error("Digital twin love feedback failed:", error);
+        setStatus("chat.feedbackFailed");
+      });
+    });
+
+    for (var r = 0; r < reasons.length; r++) {
+      reasons[r].addEventListener("click", function () {
+        if (reporting || feedback.reported) return;
+        var reasonKey = this.getAttribute("data-reason");
+        var reasonLabels = {
+          inaccurate: "chat.reportInaccurate",
+          offtopic: "chat.reportOffTopic",
+          inappropriate: "chat.reportInappropriate"
+        };
+        reporting = true;
+        for (var j = 0; j < reasons.length; j++) reasons[j].disabled = true;
+        note.className = "chat-actions__note";
+        note.textContent = t("chat.reportSending");
+        submitChatFeedback("report", t(reasonLabels[reasonKey]), currentAnswer()).then(function () {
+          feedback.reported = true;
+          writeFeedbackState(answerText, { reported: true });
+          note.className = "chat-actions__note is-success";
+          note.textContent = t("chat.reportThanks");
+          setStatus("chat.reportThanks");
+          window.setTimeout(function () { setMenuOpen(false); }, 1600);
+        }).catch(function (error) {
+          console.error("Digital twin report failed:", error);
+          reporting = false;
+          for (var k = 0; k < reasons.length; k++) reasons[k].disabled = false;
+          note.className = "chat-actions__note is-error";
+          note.textContent = t("chat.feedbackFailed");
+          setStatus("chat.feedbackFailed");
+        });
+      });
+    }
+
+    if (audio) {
+      audio.addEventListener("play", function () {
+        renderSpeaking(true);
+        setStatus("chat.speaking");
+      });
+      audio.addEventListener("pause", function () {
+        if (audio.ended) return;
+        renderSpeaking(false);
+      });
+      audio.addEventListener("ended", function () {
+        if (activePlaybackStop === stopOwnPlayback) activePlaybackStop = null;
+        renderSpeaking(false);
+        setStatus("chat.voiceReady");
+      });
+      audio.addEventListener("error", function () {
+        if (activePlaybackStop === stopOwnPlayback) activePlaybackStop = null;
+        renderSpeaking(false);
+        setStatus("chat.audioFailed");
+      });
+    }
+
+    if (feedback.loved) {
+      loveBtn.classList.add("is-loved");
+      loveBtn.setAttribute("aria-checked", "true");
+      loveLabel.textContent = t("chat.loved");
+    }
+
     window.addEventListener("pagehide", function () {
-      audio.pause();
-      URL.revokeObjectURL(url);
+      stopOwnPlayback();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     }, { once: true });
 
-    render(false);
-    setStatus("chat.voiceReady");
+    renderSpeaking(false);
   }
 
   function processRecording(blob, mimeType) {
@@ -315,11 +791,8 @@
       loading.textContent = result.data.answer;
       if (result.data.transcript) remember(result.data.transcript, result.data.answer);
       resetVoice();
-      if (result.data.audioBase64) {
-        attachAudio(loading, result.data.audioBase64);
-      } else {
-        setStatus("chat.ttsFallback");
-      }
+      attachActions(loading.parentElement, loading, result.data.audioBase64 || null);
+      setStatus(result.data.audioBase64 ? "chat.voiceReady" : "chat.browserVoiceFallback");
       scrollToLatest();
     }).catch(function (error) {
       console.error("Digital twin voice request failed:", error);
@@ -342,7 +815,7 @@
       setStatus("chat.voiceUnsupported");
       return;
     }
-    stopActiveAudio();
+    stopActivePlayback();
     hideChips();
     setSending(true);
     setVoiceState("processing");
@@ -402,6 +875,17 @@
         input.focus();
       });
     }
+    var greeting = document.querySelector("#chat-thread .chat-bubble-ai");
+    if (greeting) {
+      var greetingText = greeting.querySelector("p");
+      if (greetingText) attachActions(greeting, greetingText);
+    }
+    document.addEventListener("click", function (event) {
+      if (!event.target.closest(".chat-actions__more-wrap")) closeAllActionMenus();
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") closeAllActionMenus();
+    });
     document.addEventListener("visibilitychange", function () {
       if (document.hidden && voice && voice.recorder && voice.recorder.state === "recording") {
         voice.recorder.stop();
@@ -409,5 +893,10 @@
     });
   }
 
-  window.NickDigitalTwin = { init: init };
+  window.NickDigitalTwin = {
+    init: init,
+    refreshLanguage: function () {
+      for (var i = 0; i < languageRefreshers.length; i++) languageRefreshers[i]();
+    }
+  };
 })();

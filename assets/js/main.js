@@ -125,7 +125,7 @@
       "chat.voiceConnecting": "正在准备麦克风……",
       "chat.processing": "正在识别语音并生成回答……",
       "chat.transcribing": "正在识别…",
-      "chat.voiceReady": "语音已生成，点击下方按钮播放。",
+      "chat.voiceReady": "语音已生成，点击朗读键播放。",
       "chat.ttsFallback": "语音合成暂时失败，已改为文字回答。",
       "chat.audioLabel": "数字分身的语音回答",
       "chat.audioPlay": "播放语音",
@@ -137,6 +137,30 @@
       "chat.voiceUnsupported": "当前浏览器无法使用语音功能，请改用文字提问。",
       "chat.voiceTooShort": "说话时间太短了，请再试一次。",
       "chat.noTranscript": "（没有识别到清晰语音）",
+      "chat.browserVoiceFallback": "服务端语音暂不可用，已启用浏览器朗读。",
+      "chat.actionsLabel": "回答操作",
+      "chat.copy": "复制回答",
+      "chat.copied": "回答已复制。",
+      "chat.copyFailed": "复制失败，请手动选择文本。",
+      "chat.readAloud": "朗读回答",
+      "chat.readStop": "停止朗读",
+      "chat.share": "分享回答",
+      "chat.shared": "已打开分享面板。",
+      "chat.shareCopied": "回答已复制，可粘贴分享。",
+      "chat.more": "评价或报告",
+      "chat.love": "喜爱",
+      "chat.loved": "已喜爱",
+      "chat.loveThanks": "感谢你的喜爱。",
+      "chat.report": "报告问题",
+      "chat.reportTitle": "这条回答哪里有问题？",
+      "chat.reportBack": "返回",
+      "chat.reportInaccurate": "内容不准确",
+      "chat.reportOffTopic": "答非所问",
+      "chat.reportInappropriate": "内容不当",
+      "chat.reportSending": "正在提交……",
+      "chat.reportThanks": "已收到报告，会检查这条回答。",
+      "chat.feedbackFailed": "提交失败，请稍后再试。",
+      "chat.alreadyReported": "这条回答已报告。",
 
       "contact.eyebrow": "Contact",
       "contact.title": "联系我",
@@ -300,7 +324,7 @@
       "chat.voiceConnecting": "Preparing the microphone…",
       "chat.processing": "Recognizing speech and preparing the answer…",
       "chat.transcribing": "Transcribing…",
-      "chat.voiceReady": "Voice ready. Tap the button below to play it.",
+      "chat.voiceReady": "Voice ready. Tap the speaker button to play it.",
       "chat.ttsFallback": "Voice synthesis failed, so here is the text answer instead.",
       "chat.audioLabel": "Digital twin voice answer",
       "chat.audioPlay": "Play voice",
@@ -312,6 +336,30 @@
       "chat.voiceUnsupported": "Voice is not supported in this browser. Please use text instead.",
       "chat.voiceTooShort": "That was too short. Please try again.",
       "chat.noTranscript": "(No clear speech detected)",
+      "chat.browserVoiceFallback": "Server voice is unavailable, so browser speech is enabled.",
+      "chat.actionsLabel": "Answer actions",
+      "chat.copy": "Copy answer",
+      "chat.copied": "Answer copied.",
+      "chat.copyFailed": "Copy failed. Please select the text manually.",
+      "chat.readAloud": "Read aloud",
+      "chat.readStop": "Stop reading",
+      "chat.share": "Share answer",
+      "chat.shared": "Share sheet opened.",
+      "chat.shareCopied": "Answer copied and ready to share.",
+      "chat.more": "Rate or report",
+      "chat.love": "Love it",
+      "chat.loved": "Loved",
+      "chat.loveThanks": "Thanks for the love.",
+      "chat.report": "Report a problem",
+      "chat.reportTitle": "What is wrong with this answer?",
+      "chat.reportBack": "Back",
+      "chat.reportInaccurate": "Inaccurate",
+      "chat.reportOffTopic": "Off topic",
+      "chat.reportInappropriate": "Inappropriate",
+      "chat.reportSending": "Sending…",
+      "chat.reportThanks": "Report received. I'll review this answer.",
+      "chat.feedbackFailed": "Submission failed. Please try again.",
+      "chat.alreadyReported": "This answer has already been reported.",
 
       "contact.eyebrow": "Contact",
       "contact.title": "Get in Touch",
@@ -634,6 +682,9 @@
       ? "Nick Lee 李泽毓 · Personal Homepage"
       : "Nick Lee · Personal Homepage";
     langToggle.textContent = lang === "zh" ? "EN" : "中";
+    if (window.NickDigitalTwin && typeof window.NickDigitalTwin.refreshLanguage === "function") {
+      window.NickDigitalTwin.refreshLanguage();
+    }
     try { localStorage.setItem("nick-homepage-lang", lang); } catch (e) {}
     // 模态打开时切换语言：重渲染详情并重新加载互动数据
     if (openProjectId) {
@@ -1287,6 +1338,11 @@
         if (document.body.getAttribute("data-view") === "chat") setView("info");
       });
     }
+
+    /* 支持 ?view=chat 直达聊天，便于预览和分享单条回答。 */
+    var initialView = null;
+    try { initialView = new URLSearchParams(window.location.search).get("view"); } catch (error) { initialView = null; }
+    if (initialView === "chat" || initialView === "info") setView(initialView);
   }
 
   /* ---------- 5e. 返回顶部按钮 ---------- */
