@@ -7,6 +7,7 @@
   var sending = false;
   var voice = null;
   var activePlaybackStop = null;
+  var preferredApiBase = null;
   var languageRefreshers = [];
 
   function t(key) { return config.text(key); }
@@ -65,26 +66,6 @@
       });
     }
     return copyToClipboard(value).then(function () { return { copied: true }; });
-  }
-
-  function canSpeak() {
-    return !!(window.speechSynthesis && window.SpeechSynthesisUtterance);
-  }
-
-  function speechLanguage(value) {
-    return /[\u3400-\u9FFF]/.test(value || "") ? "zh-CN" : "en-US";
-  }
-
-  function pickSpeechVoice(language) {
-    if (!canSpeak()) return null;
-    var voices = window.speechSynthesis.getVoices();
-    for (var i = 0; i < voices.length; i++) {
-      if (voices[i].lang === language) return voices[i];
-    }
-    for (var j = 0; j < voices.length; j++) {
-      if (voices[j].lang.indexOf(language.slice(0, 2)) === 0) return voices[j];
-    }
-    return null;
   }
 
   function answerHash(value) {
@@ -161,6 +142,114 @@
         throw new Error(result && result.error ? result.error.message : "Feedback failed");
       }
     });
+  }
+
+  function apiError(message, code, status, retryable) {
+    var error = new Error(message || "API request failed");
+    error.code = code || "API_ERROR";
+    error.status = status || 0;
+    error.retryable = !!retryable;
+    return error;
+  }
+
+  function apiBases() {
+    var bases = [];
+    function add(base) {
+      if (!base) return;
+      var clean = String(base).replace(/\/+$/, "");
+      if (bases.indexOf(clean) < 0) bases.push(clean);
+    }
+    add(preferredApiBase);
+    add(config.apiBase);
+    add(config.functionsUrl);
+    add(config.supabaseUrl);
+    return bases;
+  }
+
+  function functionEndpoint(base, name) {
+    if (/\.functions\.supabase\.co$/i.test(base)) return base + "/" + name;
+    return base + "/functions/v1/" + name;
+  }
+
+  /* 优先同源 Pages Function 反代，失败后回退 Supabase 直连；错误体保留业务 code。 */
+  function callFunction(name, options) {
+    options = options || {};
+    var bases = apiBases();
+    var lastError = null;
+    var anonKey = config.supabaseAnonKey || "";
+
+    function attempt(index) {
+      if (index >= bases.length) {
+        return Promise.reject(lastError || apiError("API unavailable", "NETWORK", 0, false));
+      }
+      var base = bases[index];
+      var controller = new AbortController();
+      var externalSignal = options.signal;
+      var abortedByCaller = false;
+      var timer = window.setTimeout(function () {
+        controller.abort();
+      }, options.timeout || 60000);
+      function onExternalAbort() {
+        abortedByCaller = true;
+        controller.abort();
+      }
+      if (externalSignal) {
+        if (externalSignal.aborted) onExternalAbort();
+        else externalSignal.addEventListener("abort", onExternalAbort, { once: true });
+      }
+
+      var headers = {
+        "apikey": anonKey,
+        "Authorization": "Bearer " + anonKey
+      };
+      var body = options.body;
+      if (!(body instanceof FormData)) {
+        headers["Content-Type"] = "application/json";
+        body = JSON.stringify(body || {});
+      }
+
+      return window.fetch(functionEndpoint(base, name), {
+        method: "POST",
+        headers: headers,
+        body: body,
+        signal: controller.signal
+      }).then(function (response) {
+        return response.text().then(function (text) {
+          var data = null;
+          try { data = JSON.parse(text); } catch (error) { data = null; }
+          if (!data) {
+            throw apiError("API relay unavailable", "RELAY_UNAVAILABLE", response.status, true);
+          }
+          if (!response.ok) {
+            throw apiError(
+              data.error || ("HTTP " + response.status),
+              data.code || "HTTP_ERROR",
+              response.status,
+              response.status === 401 || response.status === 403 || response.status === 404 || response.status >= 500
+            );
+          }
+          preferredApiBase = base;
+          window.clearTimeout(timer);
+          if (externalSignal) externalSignal.removeEventListener("abort", onExternalAbort);
+          return data;
+        });
+      }).catch(function (error) {
+        window.clearTimeout(timer);
+        if (externalSignal) externalSignal.removeEventListener("abort", onExternalAbort);
+        if (abortedByCaller) throw error;
+        if (error && error.name === "AbortError") {
+          error = apiError("API request timed out", "TIMEOUT", 0, true);
+        }
+        if (!error || !error.code) {
+          error = apiError(error && error.message, "NETWORK", 0, true);
+        }
+        lastError = error;
+        if (error.retryable && index + 1 < bases.length) return attempt(index + 1);
+        throw error;
+      });
+    }
+
+    return attempt(0);
   }
 
   function stopActivePlayback() {
@@ -263,15 +352,12 @@
     setStatus("chat.thinking");
     var loading = addMessage("ai", "…", true);
 
-    config.loadSupabase().then(function (sb) {
-      return sb.functions.invoke("digital-twin-chat", {
-        body: { message: message, history: priorHistory, lang: config.getLang() }
-      });
-    }).then(function (result) {
-      if (result.error || !result.data || !result.data.answer) {
-        throw new Error(result.error ? result.error.message : "Empty response");
-      }
-      var answer = result.data.answer;
+    callFunction("digital-twin-chat", {
+      body: { message: message, history: priorHistory, lang: config.getLang() },
+      timeout: 60000
+    }).then(function (data) {
+      if (!data || !data.answer) throw new Error("Empty response");
+      var answer = data.answer;
       loading.classList.remove("chat-loading");
       loading.textContent = answer;
       attachActions(loading.parentElement, loading);
@@ -368,14 +454,22 @@
     setSending(false);
   }
 
-  function failVoice(key, loading) {
+  function failVoice(key, loading, bubbleKey) {
     if (loading) {
       loading.classList.remove("chat-loading");
-      loading.textContent = t("chat.voiceError");
+      loading.textContent = t(bubbleKey || "chat.voiceError");
       loading.parentElement.classList.add("chat-bubble-error");
     }
     resetVoice();
     setStatus(key || "chat.voiceFallback");
+  }
+
+  function createAudio(audioBase64) {
+    var bytes = bytesFromBase64(audioBase64);
+    var objectUrl = URL.createObjectURL(new Blob([bytes], { type: "audio/mp3" }));
+    var nextAudio = new Audio(objectUrl);
+    nextAudio.preload = "metadata";
+    return { audio: nextAudio, objectUrl: objectUrl };
   }
 
   function attachActions(bubble, paragraph, audioBase64) {
@@ -385,15 +479,16 @@
     var feedback = readFeedbackState(answerText);
     var audio = null;
     var objectUrl = null;
-    var utterance = null;
+    var generationAbort = null;
+    var generating = false;
+    var hintTimer = null;
     var reporting = false;
 
     if (audioBase64) {
       try {
-        var bytes = bytesFromBase64(audioBase64);
-        objectUrl = URL.createObjectURL(new Blob([bytes], { type: "audio/mp3" }));
-        audio = new Audio(objectUrl);
-        audio.preload = "metadata";
+        var created = createAudio(audioBase64);
+        audio = created.audio;
+        objectUrl = created.objectUrl;
       } catch (error) {
         console.error("Digital twin audio setup failed:", error);
       }
@@ -412,13 +507,19 @@
           '<path d="m5 12.5 4.3 4.3L19 7"></path>',
         '</svg>',
       '</button>',
-      '<button class="chat-action" type="button" data-action="speak">',
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">',
-          '<path d="M11.2 4.5 6.8 8.1H3.6v7.8h3.2l4.4 3.6V4.5Z"></path>',
-          '<path d="M15.2 8.7a4.7 4.7 0 0 1 0 6.6"></path>',
-          '<path d="M18.2 6a8.6 8.6 0 0 1 0 12"></path>',
-        '</svg>',
-      '</button>',
+      '<div class="chat-actions__speak-wrap">',
+        '<button class="chat-action" type="button" data-action="speak">',
+          '<span class="chat-action__speaker" aria-hidden="true">',
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">',
+              '<path d="M11.2 4.5 6.8 8.1H3.6v7.8h3.2l4.4 3.6V4.5Z"></path>',
+              '<path d="M15.2 8.7a4.7 4.7 0 0 1 0 6.6"></path>',
+              '<path d="M18.2 6a8.6 8.6 0 0 1 0 12"></path>',
+            '</svg>',
+          '</span>',
+          '<span class="chat-action__wave" aria-hidden="true"><i></i><i></i><i></i><i></i></span>',
+        '</button>',
+        '<span class="chat-action__hint" role="status" aria-live="polite" hidden></span>',
+      '</div>',
       '<button class="chat-action" type="button" data-action="share">',
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">',
           '<path d="M12 15V3.5"></path>',
@@ -473,6 +574,7 @@
 
     var copyBtn = actions.querySelector('[data-action="copy"]');
     var speakBtn = actions.querySelector('[data-action="speak"]');
+    var speakHint = actions.querySelector(".chat-action__hint");
     var shareBtn = actions.querySelector('[data-action="share"]');
     var moreBtn = actions.querySelector('[data-action="more"]');
     var menu = actions.querySelector(".chat-actions__menu");
@@ -511,72 +613,130 @@
       return paragraph.textContent || "";
     }
 
+    function hideHint() {
+      if (hintTimer) {
+        window.clearTimeout(hintTimer);
+        hintTimer = null;
+      }
+      speakHint.hidden = true;
+      speakHint.textContent = "";
+      speakHint.className = "chat-action__hint";
+    }
+
+    function showHint(key, options) {
+      options = options || {};
+      if (hintTimer) {
+        window.clearTimeout(hintTimer);
+        hintTimer = null;
+      }
+      speakHint.hidden = false;
+      speakHint.textContent = t(key);
+      speakHint.className = "chat-action__hint" + (options.error ? " is-error" : "");
+      if (options.timeout) {
+        hintTimer = window.setTimeout(hideHint, options.timeout);
+      }
+    }
+
     function renderSpeaking(playing) {
       speakBtn.classList.toggle("is-playing", playing);
+      speakBtn.classList.toggle("is-generating", generating);
+      actions.classList.toggle("is-speech-generating", generating);
       speakBtn.setAttribute("aria-pressed", playing ? "true" : "false");
-      var label = playing
-        ? (audio ? t("chat.audioPause") : t("chat.readStop"))
-        : (audio ? t("chat.audioPlay") : t("chat.readAloud"));
+      speakBtn.setAttribute("aria-busy", generating ? "true" : "false");
+      var label = generating
+        ? t("chat.audioGenerating")
+        : (playing ? t("chat.audioPause") : t(audio ? "chat.audioPlay" : "chat.audioGenerate"));
       speakBtn.setAttribute("aria-label", label);
       speakBtn.title = label;
     }
 
-    function stopOwnPlayback() {
-      if (audio && !audio.paused) audio.pause();
-      if (utterance) {
-        var current = utterance;
-        utterance = null;
-        current.onend = null;
-        current.onerror = null;
-        if (canSpeak()) window.speechSynthesis.cancel();
+    function stopGeneration() {
+      if (generationAbort) {
+        var controller = generationAbort;
+        generationAbort = null;
+        controller.abort();
       }
+      if (generating) {
+        generating = false;
+        renderSpeaking(false);
+        hideHint();
+      }
+    }
+
+    function stopOwnPlayback() {
+      stopGeneration();
+      if (audio && !audio.paused) audio.pause();
       renderSpeaking(false);
       if (activePlaybackStop === stopOwnPlayback) activePlaybackStop = null;
     }
 
-    function startAudio() {
-      stopActivePlayback();
-      activePlaybackStop = stopOwnPlayback;
-      try { audio.currentTime = 0; } catch (error) { /* metadata 尚未就绪时忽略。 */ }
-      audio.play().catch(function (error) {
-        console.error("Digital twin audio playback failed:", error);
-        stopOwnPlayback();
-        setStatus("chat.audioFailed");
+    function bindAudioEvents() {
+      if (!audio || audio.getAttribute("data-bound") === "true") return;
+      audio.setAttribute("data-bound", "true");
+      audio.addEventListener("play", function () {
+        hideHint();
+        renderSpeaking(true);
+      });
+      audio.addEventListener("pause", function () {
+        if (audio.ended) return;
+        renderSpeaking(false);
+      });
+      audio.addEventListener("ended", function () {
+        if (activePlaybackStop === stopOwnPlayback) activePlaybackStop = null;
+        renderSpeaking(false);
+      });
+      audio.addEventListener("error", function () {
+        if (activePlaybackStop === stopOwnPlayback) activePlaybackStop = null;
+        renderSpeaking(false);
+        showHint("chat.audioFailed", { error: true, timeout: 2600 });
       });
     }
 
-    function startSpeech() {
-      if (!canSpeak()) {
-        setStatus("chat.voiceUnsupported");
-        return;
-      }
+    function startAudio() {
+      if (!audio) return;
+      try { audio.currentTime = 0; } catch (error) { /* metadata 尚未就绪时忽略。 */ }
+      audio.play().catch(function (error) {
+        console.error("Digital twin audio playback failed:", error);
+        renderSpeaking(false);
+        showHint("chat.audioFailed", { error: true, timeout: 2600 });
+      });
+    }
+
+    function generateAudio() {
+      if (generating) return;
       stopActivePlayback();
-      var speech = new window.SpeechSynthesisUtterance(currentAnswer());
-      speech.lang = speechLanguage(currentAnswer());
-      speech.rate = 1.01;
-      speech.pitch = 1;
-      var selected = pickSpeechVoice(speech.lang);
-      if (selected) speech.voice = selected;
-      utterance = speech;
       activePlaybackStop = stopOwnPlayback;
-      renderSpeaking(true);
-      setStatus("chat.speaking");
-      speech.onstart = function () { renderSpeaking(true); };
-      speech.onend = function () {
-        utterance = null;
+      generating = true;
+      generationAbort = new AbortController();
+      var controller = generationAbort;
+      renderSpeaking(false);
+      showHint("chat.audioGenerating");
+
+      callFunction("digital-twin-tts", {
+        body: { text: currentAnswer(), lang: config.getLang() },
+        timeout: 60000,
+        signal: controller.signal
+      }).then(function (data) {
+        if (generationAbort !== controller) return;
+        if (!data || !data.audioBase64) throw apiError("No audio returned", "TTS_EMPTY", 0, false);
+        var created = createAudio(data.audioBase64);
+        audio = created.audio;
+        objectUrl = created.objectUrl;
+        bindAudioEvents();
+        generationAbort = null;
+        generating = false;
+        renderSpeaking(false);
+        startAudio();
+      }).catch(function (error) {
+        if (generationAbort !== controller) return;
+        generationAbort = null;
+        generating = false;
         if (activePlaybackStop === stopOwnPlayback) activePlaybackStop = null;
         renderSpeaking(false);
-        setStatus("");
-      };
-      speech.onerror = function (event) {
-        utterance = null;
-        if (activePlaybackStop === stopOwnPlayback) activePlaybackStop = null;
-        renderSpeaking(false);
-        if (event && (event.error === "canceled" || event.error === "interrupted")) return;
-        setStatus("chat.audioFailed");
-      };
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(speech);
+        if (error && error.name === "AbortError") return;
+        console.error("Digital twin voice generation failed:", error);
+        showHint("chat.audioGenerateFailed", { error: true, timeout: 3000 });
+      });
     }
 
     copyBtn.addEventListener("click", function () {
@@ -591,19 +751,21 @@
     });
 
     speakBtn.addEventListener("click", function () {
+      if (generating) {
+        stopOwnPlayback();
+        return;
+      }
       if (audio) {
         if (!audio.paused) {
           stopOwnPlayback();
           return;
         }
+        stopActivePlayback();
+        activePlaybackStop = stopOwnPlayback;
         startAudio();
         return;
       }
-      if (utterance) {
-        stopOwnPlayback();
-        return;
-      }
-      startSpeech();
+      generateAudio();
     });
 
     shareBtn.addEventListener("click", function () {
@@ -726,26 +888,7 @@
       });
     }
 
-    if (audio) {
-      audio.addEventListener("play", function () {
-        renderSpeaking(true);
-        setStatus("chat.speaking");
-      });
-      audio.addEventListener("pause", function () {
-        if (audio.ended) return;
-        renderSpeaking(false);
-      });
-      audio.addEventListener("ended", function () {
-        if (activePlaybackStop === stopOwnPlayback) activePlaybackStop = null;
-        renderSpeaking(false);
-        setStatus("chat.voiceReady");
-      });
-      audio.addEventListener("error", function () {
-        if (activePlaybackStop === stopOwnPlayback) activePlaybackStop = null;
-        renderSpeaking(false);
-        setStatus("chat.audioFailed");
-      });
-    }
+    bindAudioEvents();
 
     if (feedback.loved) {
       loveBtn.classList.add("is-loved");
@@ -778,26 +921,31 @@
       form.append("audio", audioBlob, audioBlob.type.indexOf("ogg") >= 0 ? "question.ogg" : "question.wav");
       form.append("history", JSON.stringify(history.slice(-6)));
       form.append("lang", config.getLang());
-      return config.loadSupabase().then(function (sb) {
-        return sb.functions.invoke("digital-twin-voice", { body: form });
-      });
-    }).then(function (result) {
-      if (result.error || !result.data || !result.data.answer) {
-        throw new Error(result.error ? result.error.message : "Incomplete voice response");
-      }
+      return callFunction("digital-twin-voice", { body: form, timeout: 90000 });
+    }).then(function (data) {
+      if (!data || !data.answer) throw apiError("Incomplete voice response", "EMPTY_RESPONSE", 502, false);
       question.classList.remove("chat-loading");
-      question.textContent = result.data.transcript || t("chat.noTranscript");
+      question.textContent = data.transcript || t("chat.noTranscript");
       loading.classList.remove("chat-loading");
-      loading.textContent = result.data.answer;
-      if (result.data.transcript) remember(result.data.transcript, result.data.answer);
+      loading.textContent = data.answer;
+      if (data.transcript) remember(data.transcript, data.answer);
       resetVoice();
-      attachActions(loading.parentElement, loading, result.data.audioBase64 || null);
-      setStatus(result.data.audioBase64 ? "chat.voiceReady" : "chat.browserVoiceFallback");
+      attachActions(loading.parentElement, loading, data.audioBase64 || null);
+      setStatus(data.audioBase64 ? "chat.voiceReady" : "chat.audioOnDemand");
       scrollToLatest();
     }).catch(function (error) {
       console.error("Digital twin voice request failed:", error);
       removeMessage(question);
-      failVoice("chat.voiceFallback", loading);
+      var code = error && error.code;
+      if (code === "ASR_EMPTY") {
+        failVoice("chat.voiceNotRecognized", loading, "chat.voiceNotRecognized");
+        return;
+      }
+      if (code === "NETWORK" || code === "TIMEOUT" || code === "RELAY_UNAVAILABLE") {
+        failVoice("chat.voiceNetworkError", loading, "chat.voiceNetworkError");
+        return;
+      }
+      failVoice("chat.voiceError", loading, "chat.voiceError");
     });
   }
 
@@ -847,7 +995,7 @@
       setVoiceState("recording");
       setStatus("chat.listening");
     }).catch(function () {
-      failVoice("chat.voiceUnsupported");
+      failVoice("chat.micError");
     });
   }
 

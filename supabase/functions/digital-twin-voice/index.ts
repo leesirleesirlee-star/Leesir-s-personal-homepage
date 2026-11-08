@@ -1,8 +1,8 @@
 import { buildInstructions } from "../_shared/prompt.ts";
+import { encodeBase64, fetchWithTimeout, synthesizeMp3 } from "../_shared/volc-tts.ts";
 
 const ASR_ENDPOINT = "https://openspeech.bytedance.com/api/v3/auc/bigmodel/recognize/flash";
 const ARK_ENDPOINT = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
-const TTS_ENDPOINT = "https://openspeech.bytedance.com/api/v3/tts/unidirectional";
 const RATE_WINDOW_MS = 60_000;
 const RATE_LIMIT = 6;
 const requests = new Map<string, number[]>();
@@ -54,76 +54,6 @@ function cleanHistory(value: unknown): Array<{ role: "user" | "assistant"; conte
     if (typeof candidate.content !== "string" || !candidate.content.trim()) return [];
     return [{ role: candidate.role, content: candidate.content.trim().slice(0, 1200) }];
   });
-}
-
-function encodeBase64(bytes: Uint8Array): string {
-  let binary = "";
-  for (let offset = 0; offset < bytes.length; offset += 0x8000) {
-    binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
-  }
-  return btoa(binary);
-}
-
-function decodeBase64(value: string): Uint8Array {
-  const binary = atob(value);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes;
-}
-
-async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-async function readChunkedMp3(response: Response): Promise<Uint8Array> {
-  if (!response.body) throw new Error("TTS response has no body");
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  const chunks: Uint8Array[] = [];
-  let pending = "";
-  let total = 0;
-
-  function consume(line: string): void {
-    const trimmed = line.trim();
-    if (!trimmed) return;
-    const event = JSON.parse(trimmed) as { code?: number; data?: string; message?: string };
-    // 火山 TTS V3 使用 20000000 表示成功；同时兼容部分网关返回的 0。
-    if (event.code !== undefined && event.code !== 0 && event.code !== 20000000) {
-      throw new Error(`TTS event ${event.code}: ${event.message || "failed"}`);
-    }
-    if (event.data) {
-      const bytes = decodeBase64(event.data);
-      chunks.push(bytes);
-      total += bytes.length;
-    }
-  }
-
-  while (true) {
-    const { done, value } = await reader.read();
-    pending += decoder.decode(value || new Uint8Array(), { stream: !done });
-    let newline = pending.indexOf("\n");
-    while (newline >= 0) {
-      consume(pending.slice(0, newline));
-      pending = pending.slice(newline + 1);
-      newline = pending.indexOf("\n");
-    }
-    if (done) break;
-  }
-  consume(pending);
-  if (!total) throw new Error("TTS returned no audio");
-  const merged = new Uint8Array(total);
-  let offset = 0;
-  for (const chunk of chunks) {
-    merged.set(chunk, offset);
-    offset += chunk.length;
-  }
-  return merged;
 }
 
 Deno.serve(async (req) => {
@@ -185,6 +115,10 @@ Deno.serve(async (req) => {
     }, 35_000);
     const asrStatus = asrResponse.headers.get("X-Api-Status-Code");
     const asrBody = await asrResponse.text();
+    /* 20000003 = 正常静音音频 / 未检测到有效人声。 */
+    if (asrStatus === "20000003") {
+      return json({ error: "No speech recognized", code: "ASR_EMPTY", requestId }, 422, origin);
+    }
     if (!asrResponse.ok || (asrStatus && asrStatus !== "20000000")) {
       console.error(JSON.stringify({ requestId, stage: "asr", status: asrResponse.status, asrStatus, detail: asrBody.slice(0, 1000) }));
       return json({ error: "Speech recognition failed", code: "ASR_ERROR", requestId }, 502, origin);
@@ -223,26 +157,7 @@ Deno.serve(async (req) => {
     // 3) TTS V3：逐条读取 chunked JSON，分别解码音频块后拼接 MP3。
     // TTS 失败仍返回文本结果，前端据此降级为纯文字回答。
     try {
-      const ttsResponse = await fetchWithTimeout(TTS_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Api-Key": speechKey,
-          "X-Api-Resource-Id": "seed-tts-2.0",
-          "X-Api-Request-Id": requestId,
-        },
-        body: JSON.stringify({
-          req_params: {
-            text: answer,
-            speaker: voice,
-            audio_params: { format: "mp3" },
-          },
-        }),
-      }, 45_000);
-      if (!ttsResponse.ok) {
-        throw new Error(`HTTP ${ttsResponse.status}: ${(await ttsResponse.text()).slice(0, 1000)}`);
-      }
-      const mp3 = await readChunkedMp3(ttsResponse);
+      const mp3 = await synthesizeMp3(answer, speechKey, voice, requestId);
       return json({
         transcript,
         answer,

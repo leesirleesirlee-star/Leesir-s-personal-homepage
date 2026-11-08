@@ -6,3 +6,6 @@ verify_jwt = true
 
 [functions.digital-twin-voice]
 verify_jwt = true
+
+[functions.digital-twin-tts]
+verify_jwt = true

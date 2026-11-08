@@ -131,11 +131,18 @@
       "chat.audioPlay": "播放语音",
       "chat.audioPause": "暂停播放",
       "chat.audioFailed": "语音播放失败，请再试一次。",
+      "chat.audioGenerate": "生成语音",
+      "chat.audioGenerating": "生成语音中…",
+      "chat.audioGenerateFailed": "语音生成失败，请重试。",
+      "chat.audioOnDemand": "点击朗读键即可生成语音。",
       "chat.listening": "正在听，请自然说话；说完点击停止。",
       "chat.speaking": "正在播报回答……",
       "chat.voiceError": "语音服务暂时不可用，请改用文字提问。",
       "chat.voiceUnsupported": "当前浏览器无法使用语音功能，请改用文字提问。",
       "chat.voiceTooShort": "说话时间太短了，请再试一次。",
+      "chat.voiceNotRecognized": "无法识别语音，请重新尝试",
+      "chat.voiceNetworkError": "语音服务连接失败，请稍后再试。",
+      "chat.micError": "无法访问麦克风，请检查浏览器权限。",
       "chat.noTranscript": "（没有识别到清晰语音）",
       "chat.browserVoiceFallback": "服务端语音暂不可用，已启用浏览器朗读。",
       "chat.actionsLabel": "回答操作",
@@ -330,11 +337,18 @@
       "chat.audioPlay": "Play voice",
       "chat.audioPause": "Pause",
       "chat.audioFailed": "Playback failed. Please try again.",
+      "chat.audioGenerate": "Generate voice",
+      "chat.audioGenerating": "Generating voice…",
+      "chat.audioGenerateFailed": "Voice generation failed. Please try again.",
+      "chat.audioOnDemand": "Tap the speaker button to generate voice.",
       "chat.listening": "Listening. Speak naturally, then tap stop.",
       "chat.speaking": "Playing the answer…",
       "chat.voiceError": "Voice is unavailable right now. Please use text instead.",
       "chat.voiceUnsupported": "Voice is not supported in this browser. Please use text instead.",
       "chat.voiceTooShort": "That was too short. Please try again.",
+      "chat.voiceNotRecognized": "Speech not recognized. Please try again.",
+      "chat.voiceNetworkError": "Could not reach the voice service. Please try again.",
+      "chat.micError": "Microphone unavailable. Please check browser permissions.",
       "chat.noTranscript": "(No clear speech detected)",
       "chat.browserVoiceFallback": "Server voice is unavailable, so browser speech is enabled.",
       "chat.actionsLabel": "Answer actions",
@@ -583,9 +597,47 @@
      anon key 为 Supabase 可公开密钥，安全由 RLS 策略保证；service key 永不入库。
      首屏不加载 supabase-js（218KB）：打开项目详情 / 提交反馈时动态引入，加载一次并复用 */
   var SUPABASE_URL = "https://hblrhrhwmnlpvpadvgmq.supabase.co";
+  var SUPABASE_FUNCTIONS_URL = "https://hblrhrhwmnlpvpadvgmq.functions.supabase.co";
   var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhibHJocmh3bW5scHZwYWR2Z21xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2Mjc4NTUsImV4cCI6MjEwNTIwMzg1NX0.tBGCHkTJN_EoiycwZf36ARirJSKK8xvJXYSlQISe1tM";
+  var SUPABASE_API_URL = SUPABASE_URL;
   var supabaseClient = null;
   var supabaseLoading = null;
+  var supabaseProxyUnavailable = false;
+
+  /* 国内网络优先走同源反向代理：浏览器只访问当前站点，不直连 *.supabase.co。
+     GitHub Pages / 本地预览没有 Pages Functions，自动回退到 Supabase 直连。 */
+  (function selectSupabaseApiBase() {
+    var host = window.location.hostname;
+    var localOrGithub = /^(localhost|127\.0\.0\.1|::1)$/.test(host) || /\.github\.io$/i.test(host);
+    if (!localOrGithub && window.location.protocol === "https:") {
+      SUPABASE_API_URL = window.location.origin + "/api/supabase";
+    }
+  })();
+
+  function supabaseDirectUrl(url) {
+    if (SUPABASE_API_URL === SUPABASE_URL) return url;
+    if (url.indexOf(SUPABASE_API_URL) !== 0) return url;
+    return SUPABASE_URL + url.slice(SUPABASE_API_URL.length);
+  }
+
+  function supabaseFetch(input, init) {
+    var url = String(input);
+    if (SUPABASE_API_URL === SUPABASE_URL || supabaseProxyUnavailable || url.indexOf(SUPABASE_API_URL) !== 0) {
+      return window.fetch(input, init);
+    }
+    return window.fetch(input, init).then(function (response) {
+      var type = response.headers.get("content-type") || "";
+      /* 未部署 Pages Function 时静态站点会回退到 index.html；反代 5xx 也回退直连。 */
+      if (type.indexOf("text/html") >= 0 || response.status >= 500) {
+        supabaseProxyUnavailable = true;
+        return window.fetch(supabaseDirectUrl(url), init);
+      }
+      return response;
+    }).catch(function (error) {
+      supabaseProxyUnavailable = true;
+      return window.fetch(supabaseDirectUrl(url), init).catch(function () { throw error; });
+    });
+  }
 
   function loadSupabase() {
     if (supabaseClient) return Promise.resolve(supabaseClient);
@@ -595,7 +647,9 @@
       s.src = "assets/vendor/supabase-js.js";
       s.onload = function () {
         if (window.supabase && typeof window.supabase.createClient === "function") {
-          supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          supabaseClient = window.supabase.createClient(SUPABASE_API_URL, SUPABASE_ANON_KEY, {
+            global: { fetch: supabaseFetch }
+          });
           resolve(supabaseClient);
         } else {
           supabaseLoading = null;
@@ -1367,6 +1421,9 @@
     window.NickDigitalTwin.init({
       loadSupabase: loadSupabase,
       supabaseUrl: SUPABASE_URL,
+      functionsUrl: SUPABASE_FUNCTIONS_URL,
+      apiBase: SUPABASE_API_URL,
+      supabaseAnonKey: SUPABASE_ANON_KEY,
       getLang: function () { return htmlEl.getAttribute("lang") === "en" ? "en" : "zh"; },
       text: function (key) { return key ? (dict()[key] || key) : ""; }
     });
