@@ -322,10 +322,11 @@
     }
     var bubble = document.createElement("div");
     bubble.className = role === "user" ? "chat-bubble-user" : "chat-bubble-ai";
-    var paragraph = document.createElement("p");
+    var paragraph = document.createElement(role === "user" ? "p" : "div");
     paragraph.textContent = text || "";
+    if (role !== "user") paragraph.className = "chat-answer";
     if (loading) {
-      paragraph.className = "chat-loading";
+      paragraph.className = "chat-answer chat-loading";
       paragraph.setAttribute("aria-label", t("chat.thinking"));
     }
     bubble.appendChild(paragraph);
@@ -339,19 +340,159 @@
     if (activeTypewriter) activeTypewriter.finish();
   }
 
-  /* 逐字显示回答：短文本按字出现，长文本按固定时长加速，避免等待过久。 */
+  /* 富文本回答：先 Markdown，再清洗，再交给 KaTeX 渲染公式。 */
+  function looksRich(text) {
+    return /\$\$[\s\S]*?\$\$|\$[^$\n]+\$|(^|\n)\s*(#{1,3}\s|[-*+]\s|\d+\.\s|```|\|)/.test(String(text || ""));
+  }
+
+  /* Markdown 会把矩阵行分隔 \\ 当作 Markdown 转义；先把它替换成占位符。 */
+  function protectMath(text) {
+    var source = String(text || "");
+    var store = [];
+    var out = "";
+    var i = 0;
+    while (i < source.length) {
+      if (source.substr(i, 3) === "```") {
+        var fenceEnd = source.indexOf("```", i + 3);
+        if (fenceEnd === -1) { out += source.slice(i); break; }
+        out += source.slice(i, fenceEnd + 3);
+        i = fenceEnd + 3;
+        continue;
+      }
+      if (source[i] === "`") {
+        var codeEnd = source.indexOf("`", i + 1);
+        if (codeEnd === -1) { out += source.slice(i); break; }
+        out += source.slice(i, codeEnd + 1);
+        i = codeEnd + 1;
+        continue;
+      }
+      if (source[i] === "\\" && source[i + 1] === "$") {
+        out += source.slice(i, i + 2);
+        i += 2;
+        continue;
+      }
+      if (source[i] === "\\") {
+        out += source[i++];
+        continue;
+      }
+      if (source.substr(i, 2) === "$$") {
+        var displayEnd = source.indexOf("$$", i + 2);
+        if (displayEnd !== -1) {
+          store.push(source.slice(i, displayEnd + 2));
+          out += "@@MATH" + (store.length - 1) + "@@";
+          i = displayEnd + 2;
+          continue;
+        }
+      }
+      if (source[i] === "$") {
+        var inlineEnd = i + 1;
+        while (inlineEnd < source.length && source[inlineEnd] !== "$" && source[inlineEnd] !== "\n") inlineEnd++;
+        if (inlineEnd < source.length && source[inlineEnd] === "$" && inlineEnd > i + 1) {
+          store.push(source.slice(i, inlineEnd + 1));
+          out += "@@MATH" + (store.length - 1) + "@@";
+          i = inlineEnd + 1;
+          continue;
+        }
+      }
+      out += source[i++];
+    }
+    return { text: out, store: store };
+  }
+
+  function restoreMath(html, store) {
+    var out = html;
+    for (var i = 0; i < store.length; i++) {
+      var safe = store[i]
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+      out = out.split("@@MATH" + i + "@@").join(safe);
+    }
+    return out;
+  }
+
+  function renderRichText(paragraph, text) {
+    var raw = String(text || "");
+    if (!window.marked || !window.DOMPurify) {
+      paragraph.textContent = raw;
+      return;
+    }
+    try {
+      var protectedText = protectMath(raw);
+      var html = window.marked.parse(protectedText.text, { gfm: true, breaks: false });
+      var clean = window.DOMPurify.sanitize(html, {
+        USE_PROFILES: { html: true },
+        FORBID_TAGS: ["img", "iframe", "object", "embed", "form", "input", "button", "video", "audio", "source"],
+        FORBID_ATTR: ["style", "onerror", "onload"]
+      });
+      if (!clean) throw new Error("Empty sanitized HTML");
+      paragraph.innerHTML = restoreMath(clean, protectedText.store);
+      var links = paragraph.querySelectorAll("a");
+      for (var i = 0; i < links.length; i++) {
+        links[i].setAttribute("target", "_blank");
+        links[i].setAttribute("rel", "noopener noreferrer");
+      }
+      if (window.renderMathInElement && window.katex) {
+        window.renderMathInElement(paragraph, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false }
+          ],
+          throwOnError: false,
+          strict: "ignore",
+          ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"]
+        });
+        var mathErrors = paragraph.querySelectorAll(".katex-error");
+        for (var j = 0; j < mathErrors.length; j++) {
+          var fallback = document.createElement("code");
+          fallback.textContent = mathErrors[j].textContent || "";
+          mathErrors[j].parentNode.replaceChild(fallback, mathErrors[j]);
+        }
+      }
+    } catch (error) {
+      console.warn("Digital twin rich text render failed:", error);
+      paragraph.textContent = raw;
+    }
+  }
+
+  function stripForSpeech(text) {
+    return String(text || "")
+      .replace(/```[\s\S]*?```/g, " 代码片段。")
+      .replace(/`([^`]+)`/g, "$1")
+      .replace(/\$\$[\s\S]*?\$\$/g, " 公式。")
+      .replace(/\$[^$\n]+\$/g, " 公式。")
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+      .replace(/^\s{0,3}[-*+]\s+/gm, "")
+      .replace(/^\s{0,3}\d+\.\s+/gm, "")
+      .replace(/^\s*\|.*\|\s*$/gm, " ")
+      .replace(/\*\*|__/g, "")
+      .replace(/[*_~]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  /* 逐字显示回答：普通文本逐字出现；公式、表格、代码直接渲染，避免闪出源码。 */
   function typeAnswer(paragraph, answer, onDone) {
     finishActiveTypewriter();
     var text = answer || "";
     var chars = Array.from(text);
     var reducedMotion = window.matchMedia &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    paragraph.dataset.rawAnswer = text;
 
-    if (!chars.length || reducedMotion) {
-      paragraph.textContent = text;
-      paragraph.classList.remove("is-typing");
+    function finalize() {
+      paragraph.classList.remove("is-typing", "chat-loading");
       paragraph.removeAttribute("aria-busy");
+      paragraph.removeAttribute("aria-label");
+      renderRichText(paragraph, text);
+      activeTypewriter = null;
       if (onDone) onDone();
+    }
+
+    if (!chars.length || reducedMotion || looksRich(text)) {
+      finalize();
       return null;
     }
 
@@ -369,11 +510,7 @@
       done = true;
       if (fallbackTimer) window.clearTimeout(fallbackTimer);
       if (frameId && window.cancelAnimationFrame) window.cancelAnimationFrame(frameId);
-      paragraph.textContent = text;
-      paragraph.classList.remove("is-typing");
-      paragraph.removeAttribute("aria-busy");
-      activeTypewriter = null;
-      if (onDone) onDone();
+      finalize();
     }
 
     function step(now) {
@@ -468,6 +605,7 @@
     }).catch(function (error) {
       console.error("Digital twin text request failed:", error);
       loading.classList.remove("chat-loading");
+      loading.removeAttribute("aria-label");
       loading.textContent = t("chat.textError");
       loading.parentElement.classList.add("chat-bubble-error");
       setStatus("chat.voiceFallback");
@@ -577,7 +715,7 @@
   function attachActions(bubble, paragraph, audioBase64) {
     if (!bubble || !paragraph || bubble.querySelector(".chat-actions")) return;
 
-    var answerText = paragraph.textContent || "";
+    var answerText = paragraph.dataset.rawAnswer || paragraph.textContent || "";
     var feedback = readFeedbackState(answerText);
     var audio = null;
     var objectUrl = null;
@@ -712,7 +850,15 @@
     refreshLanguage();
 
     function currentAnswer() {
-      return paragraph.textContent || "";
+      return paragraph.dataset.rawAnswer || paragraph.textContent || "";
+    }
+
+    function speechText() {
+      var plain = stripForSpeech(currentAnswer());
+      if (plain) return plain;
+      return config.getLang() === "en"
+        ? "This answer is mainly a formula; please read it in the chat."
+        : "这条回答主要包含公式，建议直接查看文字。";
     }
 
     function hideHint() {
@@ -815,7 +961,7 @@
       showHint("chat.audioGenerating");
 
       callFunction("digital-twin-tts", {
-        body: { text: currentAnswer(), lang: config.getLang() },
+        body: { text: speechText(), lang: config.getLang() },
         timeout: 60000,
         signal: controller.signal
       }).then(function (data) {

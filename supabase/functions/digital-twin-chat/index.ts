@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
         ],
         thinking: { type: "disabled" },
         temperature: 0.4,
-        max_tokens: 500,
+        max_tokens: 1200,
         stream: false,
       }),
       signal: controller.signal,
