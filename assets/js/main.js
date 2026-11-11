@@ -9,6 +9,13 @@
 (function () {
   "use strict";
 
+  /* 页面底部版本号跟随当前 main.js 的缓存版本，避免漏改静态文案 */
+  var SITE_VERSION = (function () {
+    var script = document.currentScript;
+    var match = script && script.src && script.src.match(/[?&]v=([^&]+)/);
+    return match ? match[1] : "6.6.6";
+  })();
+
   /* ---------- 1. i18n 词典 ---------- */
   var i18n = {
     zh: {
@@ -216,7 +223,7 @@
       "feedback.error": "提交失败，请检查网络后重试。",
       "feedback.empty": "请先填写反馈内容。",
 
-      "footer.text": "© 2026 Nick Lee · V5"
+      "footer.text": "© 2026 Nick Lee · V" + SITE_VERSION
     },
 
     en: {
@@ -424,7 +431,7 @@
       "feedback.error": "Submission failed — please check your connection and try again.",
       "feedback.empty": "Please write your feedback first.",
 
-      "footer.text": "© 2026 Nick Lee · V5"
+      "footer.text": "© 2026 Nick Lee · V" + SITE_VERSION
     }
   };
 
