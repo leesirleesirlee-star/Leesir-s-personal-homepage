@@ -89,8 +89,11 @@
   /* ---- 核心渲染：索引驱动位置算法（文章要素 1/2/5） ---- */
   function render() {
     var w = flow.clientWidth || window.innerWidth;
-    var step = Math.max(64, w * STEP_VW);
-    var pad = Math.max(90, w * PAD_VW);
+    var cardW = cards[0] ? cards[0].offsetWidth : 300;
+    /* 步进也与卡宽联动，窄屏侧卡之间不会重新贴死 */
+    var step = Math.max(64, w * STEP_VW, cardW * 0.80);
+    /* 保证中心卡与首张侧卡留出空隙；小屏也不会再贴在一起 */
+    var pad = Math.max(90, w * PAD_VW, cardW * 0.75 + 24);
     var total = PHOTOS.length;
 
     for (var i = 0; i < total; i++) {
