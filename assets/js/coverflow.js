@@ -60,6 +60,7 @@
 
       var refl = document.createElement("div");
       refl.className = "gf-reflection";
+      refl.setAttribute("aria-hidden", "true");
       var rimg = document.createElement("img");
       rimg.src = PHOTOS[i].thumb;
       rimg.alt = "";
@@ -110,6 +111,7 @@
 
       el.style.zIndex = String(total - abs + 10);
       el.style.setProperty("--gf-dim", dim.toFixed(3));
+      el.style.setProperty("--gf-reflection-opacity", (dim * 0.58).toFixed(3));
       el.style.visibility = abs > 5 ? "hidden" : "visible";
       el.style.transform = "translate(-50%, -50%) translateX(" + x.toFixed(1) +
         "px) rotateY(" + angle + "deg) scale(" + scale.toFixed(3) + ")";
