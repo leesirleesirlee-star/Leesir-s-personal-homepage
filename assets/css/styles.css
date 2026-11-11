@@ -2510,7 +2510,7 @@ button.stat {
   position: absolute;
   top: 44%;
   left: 50%;
-  width: min(46vw, 300px);
+  width: min(46vw, 300px, 36vh);
   aspect-ratio: 3 / 4;
   margin: 0;
   transform: translate(-50%, -50%);
@@ -2658,7 +2658,7 @@ button.stat {
 
 /* ---- V5 响应式 ---- */
 @media (max-width: 768px) {
-  .gf-card { width: min(52vw, 260px); }
+  .gf-card { width: min(52vw, 260px, 36vh); }
   .gallery-flow { perspective-origin: 50% 42%; }
   .gf-reflection { height: 44%; transform: rotateX(30deg); }
   .gallery-flow::before { width: 86vw; height: 110px; bottom: 1%; }
@@ -2667,7 +2667,7 @@ button.stat {
 }
 
 @media (max-width: 560px) {
-  .gf-card { width: 56vw; }
+  .gf-card { width: min(56vw, 36vh); }
   .gallery-foot { bottom: calc(env(safe-area-inset-bottom, 0px) + 14px); }
   .gallery-hint { font-size: 11px; }
 }
