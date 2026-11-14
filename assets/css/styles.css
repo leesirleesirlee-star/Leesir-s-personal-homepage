@@ -2845,7 +2845,90 @@ button.stat {
   opacity: 0.55;
   animation: chat-caret 0.8s step-end infinite;
 }
-.chat-loading { color: var(--text-secondary); animation: chat-thinking 1s ease-in-out infinite alternate; }
+.chat-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--text-secondary);
+}
+.chat-thinking-label {
+  position: relative;
+  display: inline-block;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+}
+.chat-thinking-label::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  color: var(--accent);
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 32%, #000 50%, transparent 68%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, transparent 32%, #000 50%, transparent 68%, transparent 100%);
+  -webkit-mask-size: 240% 100%;
+  mask-size: 240% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  animation: chat-thinking-sweep 1.9s linear infinite;
+}
+.chat-thinking-dots {
+  position: relative;
+  width: 22px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.chat-thinking-orbit {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  animation: chat-dot-orbit 4.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+.chat-thinking-dots i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  animation: chat-dot-move 4.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+.chat-thinking-dots i:nth-child(1) { --x0: -7px; --tx: 0px; --ty: -5.8px; }
+.chat-thinking-dots i:nth-child(2) { --x0: 0px; --tx: 5px; --ty: 2.9px; }
+.chat-thinking-dots i:nth-child(3) { --x0: 7px; --tx: -5px; --ty: 2.9px; }
+.chat-thinking-dots i span {
+  position: absolute;
+  left: -2.4px;
+  top: -2.4px;
+  width: 4.8px;
+  height: 4.8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: chat-dot-breathe 1.15s ease-in-out infinite;
+}
+.chat-thinking-dots i:nth-child(2) span { animation-delay: 0.17s; }
+.chat-thinking-dots i:nth-child(3) span { animation-delay: 0.34s; }
+@keyframes chat-thinking-sweep {
+  from { -webkit-mask-position: 170% 0; mask-position: 170% 0; }
+  to { -webkit-mask-position: -70% 0; mask-position: -70% 0; }
+}
+@keyframes chat-dot-move {
+  0%, 30% { transform: translate(var(--x0), 0); }
+  42%, 86% { transform: translate(var(--tx), var(--ty)); }
+  100% { transform: translate(var(--x0), 0); }
+}
+@keyframes chat-dot-orbit {
+  0%, 36% { transform: rotate(0deg); }
+  86%, 100% { transform: rotate(360deg); }
+}
+@keyframes chat-dot-breathe {
+  0%, 100% { transform: scale(0.66); opacity: 0.62; }
+  50% { transform: scale(1.16); opacity: 1; }
+}
 .chat-bubble-error { color: #C0392B; }
 [data-theme="dark"] .chat-bubble-error { color: #FF7A72; }
 .chat-input-wrap { padding-left: 8px; }
@@ -2880,8 +2963,15 @@ button.stat {
   .chat-voice, .chat-send { width: 42px; height: 42px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .chat-msg, .chat-loading, .chat-voice.is-recording, .chat-bubble-ai p.is-typing::after, .chat-answer.is-typing::after { animation: none; }
-  .chat-bubble-ai p.is-typing::after, .chat-answer.is-typing::after { opacity: 0.35; }
+  .chat-msg, .chat-voice.is-recording, .chat-bubble-ai p.is-typing::after, .chat-chunk.is-typing::after { animation: none; }
+  .chat-thinking-label { color: var(--text-secondary); }
+  .chat-thinking-label::after { display: none; }
+  .chat-thinking-orbit { animation: none; }
+  .chat-thinking-dots i { animation: none; transform: translate(0, -5.6px); }
+  .chat-thinking-dots i:nth-child(2) { transform: translate(4.9px, 2.8px); }
+  .chat-thinking-dots i:nth-child(3) { transform: translate(-4.9px, 2.8px); }
+  .chat-thinking-dots i span { animation: none; transform: scale(0.9); opacity: 0.8; }
+  .chat-bubble-ai p.is-typing::after, .chat-chunk.is-typing::after { opacity: 0.35; }
 }
 
 /* ---------- V6.6 Markdown + KaTeX 富文本回答 ---------- */
@@ -2891,7 +2981,11 @@ button.stat {
   color: var(--text);
   overflow-wrap: anywhere;
 }
-.chat-answer.is-typing { white-space: pre-wrap; }
+.chat-chunk { margin: 0; }
+.chat-chunk + .chat-chunk { margin-top: 0.85em; }
+.chat-chunk > :first-child { margin-top: 0; }
+.chat-chunk > :last-child { margin-bottom: 0; }
+.chat-chunk.is-typing { white-space: pre-wrap; }
 .chat-answer > :first-child { margin-top: 0; }
 .chat-answer > :last-child { margin-bottom: 0; }
 .chat-answer p { margin: 0 0 0.85em; white-space: normal; }
@@ -2973,7 +3067,7 @@ button.stat {
   overflow-x: auto;
   overflow-y: hidden;
 }
-.chat-answer.is-typing::after {
+.chat-chunk.is-typing::after {
   content: "";
   display: inline-block;
   width: 1.5px;

@@ -13,7 +13,7 @@
   var SITE_VERSION = (function () {
     var script = document.currentScript;
     var match = script && script.src && script.src.match(/[?&]v=([^&]+)/);
-    return match ? match[1] : "6.6.7";
+    return match ? match[1] : "6.6.8";
   })();
 
   /* ---------- 1. i18n 词典 ---------- */
@@ -130,6 +130,7 @@
       "chat.placeholder": "向 Nick 提问……",
       "chat.note": "基于公开资料回答 · 语音由豆包 ASR / TTS 提供",
       "chat.thinking": "正在思考……",
+      "chat.thinkingInline": "正在思考",
       "chat.textError": "这次没连上，麻烦稍后再试一次。",
       "chat.voiceFallback": "你仍可以改用文字提问。",
       "chat.voiceStart": "语音提问",
@@ -342,6 +343,7 @@
       "chat.placeholder": "Ask Nick anything…",
       "chat.note": "Answers based on public information · Voice by Doubao ASR / TTS",
       "chat.thinking": "Thinking…",
+      "chat.thinkingInline": "Thinking",
       "chat.textError": "I couldn't connect this time. Please try again in a moment.",
       "chat.voiceFallback": "You can still ask by text.",
       "chat.voiceStart": "Ask by voice",

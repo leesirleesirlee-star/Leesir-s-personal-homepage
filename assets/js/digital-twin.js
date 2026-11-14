@@ -323,11 +323,34 @@
     var bubble = document.createElement("div");
     bubble.className = role === "user" ? "chat-bubble-user" : "chat-bubble-ai";
     var paragraph = document.createElement(role === "user" ? "p" : "div");
-    paragraph.textContent = text || "";
     if (role !== "user") paragraph.className = "chat-answer";
     if (loading) {
       paragraph.className = "chat-answer chat-loading";
       paragraph.setAttribute("aria-label", t("chat.thinking"));
+      if (role !== "user") {
+        var label = document.createElement("span");
+        label.className = "chat-thinking-label";
+        label.textContent = t("chat.thinkingInline");
+        label.setAttribute("data-text", t("chat.thinkingInline"));
+        var dots = document.createElement("span");
+        dots.className = "chat-thinking-dots";
+        dots.setAttribute("aria-hidden", "true");
+        var orbit = document.createElement("span");
+        orbit.className = "chat-thinking-orbit";
+        for (var d = 0; d < 3; d++) {
+          var dot = document.createElement("i");
+          var core = document.createElement("span");
+          dot.appendChild(core);
+          orbit.appendChild(dot);
+        }
+        dots.appendChild(orbit);
+        paragraph.appendChild(label);
+        paragraph.appendChild(dots);
+      } else {
+        paragraph.textContent = text || "";
+      }
+    } else {
+      paragraph.textContent = text || "";
     }
     bubble.appendChild(paragraph);
     row.appendChild(bubble);
@@ -338,11 +361,6 @@
 
   function finishActiveTypewriter() {
     if (activeTypewriter) activeTypewriter.finish();
-  }
-
-  /* 富文本回答：先 Markdown，再清洗，再交给 KaTeX 渲染公式。 */
-  function looksRich(text) {
-    return /\$\$[\s\S]*?\$\$|\$[^$\n]+\$|(^|\n)\s*(#{1,3}\s|[-*+]\s|\d+\.\s|```|\|)/.test(String(text || ""));
   }
 
   /* Markdown 会把矩阵行分隔 \\ 当作 Markdown 转义；先把它替换成占位符。 */
@@ -473,67 +491,322 @@
       .trim();
   }
 
-  /* 逐字显示回答：普通文本逐字出现；公式、表格、代码直接渲染，避免闪出源码。 */
-  function typeAnswer(paragraph, answer, onDone) {
-    finishActiveTypewriter();
-    var text = answer || "";
-    var chars = Array.from(text);
-    var reducedMotion = window.matchMedia &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    paragraph.dataset.rawAnswer = text;
+  /* 富文本识别：仅用于判断某一块是否必须整体渲染。 */
+  function containsDisplayMath(text) {
+    return /\$\$[\s\S]*?\$\$/.test(String(text || ""));
+  }
 
-    function finalize() {
-      paragraph.classList.remove("is-typing", "chat-loading");
-      paragraph.removeAttribute("aria-busy");
-      paragraph.removeAttribute("aria-label");
-      renderRichText(paragraph, text);
-      activeTypewriter = null;
-      if (onDone) onDone();
+  /* 把回答切成「可打字文本块」和「必须直接渲染的富文本块」。 */
+  function splitAnswerBlocks(source) {
+    var text = String(source || "").replace(/\r\n/g, "\n");
+    var lines = text.split("\n");
+    var blocks = [];
+    var buffer = [];
+    var i = 0;
+
+    function flushText() {
+      if (!buffer.length) return;
+      var raw = buffer.join("\n").replace(/^\n+/, "").replace(/\n+$/, "");
+      buffer = [];
+      if (raw.trim()) blocks.push({ type: "text", raw: raw });
     }
 
-    if (!chars.length || reducedMotion || looksRich(text)) {
-      finalize();
-      return null;
+    function isTableSeparator(line) {
+      return /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$/.test(line);
     }
 
-    var done = false;
+    while (i < lines.length) {
+      var line = lines[i];
+      var trimmed = line.trim();
+
+      if (/^\s*```/.test(line)) {
+        flushText();
+        var fence = [line];
+        i++;
+        while (i < lines.length) {
+          fence.push(lines[i]);
+          if (/^\s*```/.test(lines[i])) { i++; break; }
+          i++;
+        }
+        blocks.push({ type: "rich", raw: fence.join("\n") });
+        continue;
+      }
+
+      if (trimmed.indexOf("$$") === 0) {
+        flushText();
+        var math = [line];
+        var closed = trimmed.slice(2).indexOf("$$") >= 0;
+        i++;
+        while (!closed && i < lines.length) {
+          math.push(lines[i]);
+          if (lines[i].indexOf("$$") >= 0) closed = true;
+          i++;
+        }
+        blocks.push({ type: "rich", raw: math.join("\n") });
+        continue;
+      }
+
+      if (line.indexOf("|") >= 0 && i + 1 < lines.length && isTableSeparator(lines[i + 1])) {
+        flushText();
+        var table = [line, lines[i + 1]];
+        i += 2;
+        while (i < lines.length && lines[i].trim().indexOf("|") === 0) {
+          table.push(lines[i]);
+          i++;
+        }
+        blocks.push({ type: "rich", raw: table.join("\n") });
+        continue;
+      }
+
+      if (!trimmed) {
+        flushText();
+        i++;
+        continue;
+      }
+
+      buffer.push(line);
+      i++;
+    }
+
+    flushText();
+    return blocks;
+  }
+
+  /* 逐字可见文本：去掉 Markdown 标记，避免打字时闪出 #、**、[]() 等源码。 */
+  function markdownToPlain(text) {
+    return String(text || "")
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      .replace(/`([^`]+)`/g, "$1")
+      .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+      .replace(/^\s{0,3}>\s?/gm, "")
+      .replace(/^\s{0,3}[-*+]\s+/gm, "• ")
+      .replace(/\*\*|__/g, "")
+      .replace(/(^|[^\w])\*([^*\n]+)\*/g, "$1$2")
+      .replace(/(^|[^\w])_([^_\n]+)_/g, "$1$2")
+      .replace(/~~([^~]+)~~/g, "$1")
+      .replace(/^\s*([-*_])\1{2,}\s*$/gm, "");
+  }
+
+  /* 把一段文本拆成「文字 / 行内公式」：文字继续打字，公式立即交给 KaTeX。 */
+  function splitInlineMath(source) {
+    var text = String(source || "");
+    var parts = [];
+    var start = 0;
+    var i = 0;
+
+    while (i < text.length) {
+      if (text[i] === "\\") { i += 2; continue; }
+      if (text[i] === "`") {
+        var codeEnd = text.indexOf("`", i + 1);
+        i = codeEnd === -1 ? text.length : codeEnd + 1;
+        continue;
+      }
+      if (text.substr(i, 2) === "$$") {
+        var displayEnd = text.indexOf("$$", i + 2);
+        i = displayEnd === -1 ? text.length : displayEnd + 2;
+        continue;
+      }
+      if (text[i] === "$") {
+        var end = i + 1;
+        while (end < text.length && text[end] !== "$" && text[end] !== "\n") end++;
+        if (end < text.length && text[end] === "$" && end > i + 1) {
+          if (i > start) parts.push({ type: "text", value: text.slice(start, i) });
+          parts.push({ type: "math", value: text.slice(i, end + 1) });
+          i = end + 1;
+          start = i;
+          continue;
+        }
+      }
+      i++;
+    }
+
+    if (start < text.length) parts.push({ type: "text", value: text.slice(start) });
+    return parts;
+  }
+
+  function renderInlineMath(node) {
+    if (!window.renderMathInElement || !window.katex) return;
+    try {
+      window.renderMathInElement(node, {
+        delimiters: [{ left: "$", right: "$", display: false }],
+        throwOnError: false,
+        strict: "ignore"
+      });
+    } catch (error) {
+      /* 渲染失败时保留公式原文 */
+    }
+  }
+
+  function typeChunk(container, raw, onDone) {
+    var chunk = document.createElement("div");
+    chunk.className = "chat-chunk is-typing";
+    container.appendChild(chunk);
+
+    var segments = splitInlineMath(raw);
+    var segmentIndex = 0;
+    var textNode = null;
+    var chars = null;
     var startedAt = null;
-    var duration = Math.max(450, Math.min(3200, chars.length * 8));
-    var fallbackTimer = null;
+    var duration = 0;
     var frameId = null;
+    var finished = false;
     var raf = window.requestAnimationFrame || function (callback) {
       return window.setTimeout(function () { callback(Date.now()); }, 16);
     };
 
-    function finish() {
-      if (done) return;
-      done = true;
-      if (fallbackTimer) window.clearTimeout(fallbackTimer);
+    function finalize() {
+      if (finished) return;
+      finished = true;
       if (frameId && window.cancelAnimationFrame) window.cancelAnimationFrame(frameId);
-      finalize();
+      frameId = null;
+      chunk.classList.remove("is-typing");
+      renderRichText(chunk, raw);
+      onDone();
+    }
+
+    function nextSegment() {
+      if (finished) return;
+      if (segmentIndex >= segments.length) {
+        finalize();
+        return;
+      }
+      var segment = segments[segmentIndex++];
+      if (segment.type === "math") {
+        var math = document.createElement("span");
+        math.className = "chat-inline-math";
+        math.textContent = segment.value;
+        chunk.appendChild(math);
+        renderInlineMath(math);
+        scrollToLatest();
+        window.setTimeout(nextSegment, 60);
+        return;
+      }
+      chars = Array.from(markdownToPlain(segment.value));
+      if (!chars.length) {
+        window.setTimeout(nextSegment, 0);
+        return;
+      }
+      textNode = document.createTextNode("");
+      chunk.appendChild(textNode);
+      startedAt = null;
+      duration = Math.max(220, Math.min(1600, chars.length * 7));
+      frameId = raf(step);
     }
 
     function step(now) {
-      if (done) return;
+      if (finished) return;
       if (startedAt === null) startedAt = now;
       var progress = Math.min(1, (now - startedAt) / duration);
       var count = Math.max(1, Math.floor(chars.length * progress));
-      paragraph.textContent = chars.slice(0, count).join("");
+      textNode.nodeValue = chars.slice(0, count).join("");
       if (progress < 1) {
-        if (count % 5 === 0) scrollToLatest();
+        if (count % 6 === 0) scrollToLatest();
         frameId = raf(step);
       } else {
-        finish();
+        textNode = null;
+        chars = null;
+        nextSegment();
       }
     }
 
-    paragraph.textContent = "";
-    paragraph.classList.add("is-typing");
-    paragraph.setAttribute("aria-busy", "true");
-    activeTypewriter = { finish: finish };
-    fallbackTimer = window.setTimeout(finish, duration + 300);
-    frameId = raf(step);
+    nextSegment();
+    return {
+      finish: function () {
+        if (finished) return;
+        if (frameId && window.cancelAnimationFrame) window.cancelAnimationFrame(frameId);
+        frameId = null;
+        finalize();
+      }
+    };
+  }
+
+  /* 逐字显示回答：普通文字打字；公式 / 表格 / 代码块直接渲染，然后继续往后打。 */
+  function typeAnswer(container, answer, onDone) {
+    finishActiveTypewriter();
+    var text = String(answer || "");
+    var reducedMotion = window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    container.dataset.rawAnswer = text;
+    var blocks = splitAnswerBlocks(text);
+    var blockIndex = 0;
+    var activeChunk = null;
+    var stopped = false;
+    var finished = false;
+
+    function complete() {
+      if (finished) return;
+      finished = true;
+      container.classList.remove("is-typing", "chat-loading");
+      container.removeAttribute("aria-busy");
+      container.removeAttribute("aria-label");
+      activeTypewriter = null;
+      if (onDone) onDone();
+    }
+
+    function renderBlock(block) {
+      var node = document.createElement("div");
+      node.className = "chat-chunk chat-chunk--rich";
+      container.appendChild(node);
+      renderRichText(node, block.raw);
+    }
+
+    function renderRemaining() {
+      while (blockIndex < blocks.length) renderBlock(blocks[blockIndex++]);
+      complete();
+    }
+
+    function runNext() {
+      if (finished) return;
+      if (stopped) {
+        renderRemaining();
+        return;
+      }
+      if (blockIndex >= blocks.length) {
+        complete();
+        return;
+      }
+      var block = blocks[blockIndex++];
+      if (block.type === "rich" || containsDisplayMath(block.raw)) {
+        renderBlock(block);
+        scrollToLatest();
+        window.setTimeout(runNext, 70);
+        return;
+      }
+      activeChunk = typeChunk(container, block.raw, function () {
+        activeChunk = null;
+        runNext();
+      });
+    }
+
+    function finishAll() {
+      if (finished) return;
+      stopped = true;
+      if (activeChunk) {
+        var chunk = activeChunk;
+        activeChunk = null;
+        chunk.finish();
+        return;
+      }
+      renderRemaining();
+    }
+
+    container.innerHTML = "";
+    container.removeAttribute("aria-label");
+    container.setAttribute("aria-busy", "true");
+    activeTypewriter = { finish: finishAll };
+
+    if (!blocks.length) {
+      finishAll();
+      return null;
+    }
+    if (reducedMotion) {
+      renderRemaining();
+      return null;
+    }
+
     scrollToLatest();
+    runNext();
     return activeTypewriter;
   }
 
@@ -582,7 +855,6 @@
     addMessage("user", message);
     input.value = "";
     setSending(true);
-    setStatus("chat.thinking");
     var loading = addMessage("ai", "…", true);
 
     callFunction("digital-twin-chat", {
