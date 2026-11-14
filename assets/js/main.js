@@ -13,7 +13,7 @@
   var SITE_VERSION = (function () {
     var script = document.currentScript;
     var match = script && script.src && script.src.match(/[?&]v=([^&]+)/);
-    return match ? match[1] : "6.6.6";
+    return match ? match[1] : "6.6.7";
   })();
 
   /* ---------- 1. i18n 词典 ---------- */
@@ -56,9 +56,13 @@
       "projects.status.inprogress": "进行中",
       "projects.p1.name": "Digital Resin · 离子交换树脂数字孪生模型",
       "projects.p1.desc": "AI for Science 研究项目：构建离子交换树脂的数字孪生模型——输入树脂参数与运行条件，输出吸附性能预测的虚拟实验。",
-      "projects.p2.name": "大学志愿者论坛小程序",
-      "projects.p2.desc": "面向大学志愿者社群的微信小程序，已开发完成提出建议与志愿活动公告功能，尚未上线运营。",
-      "projects.p2.tag": "微信小程序",
+      "projects.p4.name": "大学志愿者论坛小程序",
+      "projects.p4.desc": "面向大学志愿者社群的微信小程序，已开发完成提出建议与志愿活动公告功能，尚未上线运营。",
+      "projects.p4.tag": "微信小程序",
+      "projects.p2.name": "ExpResin · 树脂实验数字化流水线",
+      "projects.p2.desc": "AI for Science 实验数据平台：把树脂实验的 Excel 原始记录识别、规范化并归档，一键导出标准记录表、衍生量与穿透曲线。",
+      "projects.p3.name": "Binary Repair · 二进制漏洞修复",
+      "projects.p3.desc": "无源码条件下修复 Linux x86-64 ELF 已知漏洞的本地分析工具：两条独立修复路线产出候选字节，由确定性验收引擎判定修复是否成立。",
       "projects.status.planning": "筹备中",
       "projects.status.completed": "已完成",
       "projects.hint": "查看详情",
@@ -264,9 +268,13 @@
       "projects.status.inprogress": "In Progress",
       "projects.p1.name": "Digital Resin · Ion Exchange Resin Digital Twin",
       "projects.p1.desc": "An AI for Science project: a digital twin of ion exchange resin — virtual experiments that predict adsorption performance from resin parameters and operating conditions.",
-      "projects.p2.name": "University Volunteer Forum",
-      "projects.p2.desc": "A WeChat mini program for university volunteer communities. Suggestion submission and volunteer announcement features are complete, but it has not yet launched.",
-      "projects.p2.tag": "WeChat Mini Program",
+      "projects.p4.name": "University Volunteer Forum",
+      "projects.p4.desc": "A WeChat mini program for university volunteer communities. Suggestion submission and volunteer announcement features are complete, but it has not yet launched.",
+      "projects.p4.tag": "WeChat Mini Program",
+      "projects.p2.name": "ExpResin · Resin Experiment Digitization Pipeline",
+      "projects.p2.desc": "An AI for Science data platform: recognize, canonicalize and archive raw resin-experiment Excel workbooks, then export standard record sheets, derived quantities and breakthrough curves.",
+      "projects.p3.name": "Binary Repair · Binary Vulnerability Repair",
+      "projects.p3.desc": "A local analyst tool that repairs one known vulnerability in a Linux x86-64 ELF without source: two independent repair routes produce candidate bytes, and a deterministic acceptance engine decides whether the repair holds.",
       "projects.status.planning": "Planning",
       "projects.status.completed": "Completed",
       "projects.hint": "View Details",
@@ -523,6 +531,126 @@
           "Experimental-data training and active learning toward an autonomous AI-Agent closed loop."
         ],
         github: "https://github.com/leesirleesirlee-star/Digital-Resin"
+      }
+    },
+    expresin: {
+      zh: {
+        name: "ExpResin · 树脂实验数字化流水线",
+        badge: "进行中",
+        stage: "活跃开发",
+        background: "树脂实验的原始记录散落在格式各异的 Excel 工作簿里，整理、复核和复用都很费时间。ExpResin 是一条从原始工作簿到结构化实验档案的数字化流水线，按「识别 → 规范化 → 归档 → 导出」把实验数据变成可查询、可对比、可复用的资产。",
+        goals: [
+          "自动识别实验记录的表头、数据区块与列语义，并保留置信度供人工复核；",
+          "把识别结果整理为统一的 canonical 长表，数值始终回读原始工作簿；",
+          "按实验类型导出标准记录模板，并计算带方法与说明的衍生量。"
+        ],
+        done: [
+          "完成 L1/L2 表格识别与人工复核流程；",
+          "覆盖批量、柱式与四种电化学实验的记录模板与 Excel 导出；",
+          "衍生量覆盖去除率、qe、BV、Ct/C0、电流密度与能耗，无法计算时明确给出原因；",
+          "完成账号与数据隔离、归档镜像到 NAS、AI 成长总结与穿透曲线绘制。"
+        ],
+        stack: [
+          ["后端", "FastAPI, SQLite"],
+          ["前端", "Vue 3, Vite"],
+          ["AI", "DeepSeek 结构化报告"],
+          ["存储", "NAS / SMB"]
+        ],
+        next: [
+          "提升复杂表格的识别稳健性，补充真实数据基准；",
+          "扩展更多实验类型的模板与衍生量定义。"
+        ],
+        note: "真实实验数据与本地档案库不公开，仓库只包含代码与文档。",
+        github: "https://github.com/leesirleesirlee-star/ExpResin"
+      },
+      en: {
+        name: "ExpResin · Resin Experiment Digitization Pipeline",
+        badge: "In Progress",
+        stage: "Active development",
+        background: "Resin experiment records live in Excel workbooks with inconsistent formats, making cleanup, review and reuse expensive. ExpResin is a pipeline from raw workbooks to structured experiment archives — recognize, canonicalize, archive, export — turning experiment data into a queryable and comparable asset.",
+        goals: [
+          "Detect headers, data blocks and column semantics, keeping confidence scores for human review;",
+          "Materialize results into a canonical long table, always re-reading values from the raw workbook;",
+          "Export standard record templates per experiment type and compute derived quantities with explicit methods."
+        ],
+        done: [
+          "Built L1/L2 table recognition with a human review step;",
+          "Covered batch, column and four electrochemical experiment types for record templates and Excel export;",
+          "Derived removal rate, qe, BV, Ct/C0, current density and energy consumption, with an explicit reason when a value cannot be computed;",
+          "Added account and data isolation, NAS archiving, AI growth reports and breakthrough curves."
+        ],
+        stack: [
+          ["Backend", "FastAPI, SQLite"],
+          ["Frontend", "Vue 3, Vite"],
+          ["AI", "DeepSeek structured reports"],
+          ["Storage", "NAS / SMB"]
+        ],
+        next: [
+          "Improve recognition robustness on complex tables and add real-data benchmarks;",
+          "Extend templates and derived-quantity definitions to more experiment types."
+        ],
+        note: "Real experiment data and the local archive stay private; the repository ships code and documents only.",
+        github: "https://github.com/leesirleesirlee-star/ExpResin"
+      }
+    },
+    binrepair: {
+      zh: {
+        name: "Binary Repair · 二进制漏洞修复",
+        badge: "已完成",
+        stage: "MVP 验收通过 · v1.2.1",
+        background: "没有源码时，二进制漏洞修复高度依赖人工逆向，结论也难以复核。Binary Repair 把流程拆成两条互不依赖的修复路线，再由统一的确定性验收引擎对最终字节做 V0–V5 判定——模型给出的解释只作参考，不作为证据。",
+        goals: [
+          "在无源码条件下定位并修复 Linux x86-64 ELF 的单一已知漏洞；",
+          "用两条独立路线产出候选字节，避免单一路径的偶然成功；",
+          "由确定性引擎给出 success_within_scope、rejected 等明确结论。"
+        ],
+        done: [
+          "Route A：把脆弱调用重定向到经过审查的代码洞穴；",
+          "Route B：恢复 C 代码、重新编译并回接目标函数；",
+          "控制器与隔离 guest worker 分离，宿主不执行上传或修复后的二进制；",
+          "v1.2.1 验收通过：730 项测试中 728 项通过（2 项 Linux-only 跳过），浏览器 e2e 12 项通过。"
+        ],
+        stack: [
+          ["控制器 / UI", "Python, FastAPI, Jinja"],
+          ["分析对象", "Linux x86-64 ELF"],
+          ["执行隔离", "独立 guest worker"],
+          ["验收", "V0–V5 确定性引擎"]
+        ],
+        next: [
+          "扩展二进制、架构与编译器的覆盖范围；",
+          "引入独立复核，补足当前单人角色分离的限制。"
+        ],
+        note: "V4 结论只在模型层成立，不是二进制级整体证明；当前仅覆盖单一公开 fixture 家族，属于课程 / MVP 交付，不是生产产品。",
+        github: "https://github.com/leesirleesirlee-star/Binary_Repair"
+      },
+      en: {
+        name: "Binary Repair · Binary Vulnerability Repair",
+        badge: "Completed",
+        stage: "MVP accepted · v1.2.1",
+        background: "Without source code, binary vulnerability repair depends heavily on manual reverse engineering and is hard to verify. Binary Repair splits the work into two independent repair routes, then lets one deterministic acceptance engine check the final bytes against V0–V5. A model explanation is never treated as evidence.",
+        goals: [
+          "Locate and repair one known vulnerability in a Linux x86-64 ELF without source;",
+          "Produce candidate bytes through two independent routes instead of relying on a single lucky path;",
+          "Return an explicit verdict such as success_within_scope or rejected from a deterministic engine."
+        ],
+        done: [
+          "Route A redirects the vulnerable call into a reviewed code cave;",
+          "Route B recovers C code, recompiles it and reintegrates the target function;",
+          "Controller and isolated guest worker are separate processes; the host never executes uploaded or repaired binaries;",
+          "v1.2.1 accepted: 728 of 730 tests passed (2 Linux-only skipped) and 12 browser e2e tests passed."
+        ],
+        stack: [
+          ["Controller / UI", "Python, FastAPI, Jinja"],
+          ["Target", "Linux x86-64 ELF"],
+          ["Isolation", "Separate guest worker"],
+          ["Acceptance", "V0–V5 deterministic engine"]
+        ],
+        next: [
+          "Broaden coverage across binaries, architectures and compilers;",
+          "Add independent review to offset the current single-operator role separation."
+        ],
+        note: "The V4 result holds at model scope, not as whole-program binary proof. Coverage is one public fixture family; this is a course / MVP deliverable, not a production product.",
+        github: "https://github.com/leesirleesirlee-star/Binary_Repair"
       }
     },
     forum: {
